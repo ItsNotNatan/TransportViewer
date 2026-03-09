@@ -1,29 +1,28 @@
 import { createBrowserRouter } from 'react-router-dom';
 
 import Login from './pages/login/login';
-import Home from './pages/home/home';
+// A importação do Home antigo foi eliminada daqui!
 import AdminProfile from './pages/AdminProfile/AdminProfile';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
-import Layout from './componentes/layout/layout'; // Importado da sua pasta exata!
+import Layout from './componentes/layout/layout';
 
-// Configuração das rotas
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Home />,
-  },
-  {
-    path: "/admin",
-    element: <Layout />, // O Layout entra aqui como Mestre
+    element: <Layout />, // O Layout agora manda na página inicial
     children: [
       {
-        path: "", // Representa o /admin (Tabela)
-        element: <AdminDashboard /> 
+        path: "", // O caminho vazio "" agora representa a rota raiz "/"
+        element: <AdminDashboard /> // O Dashboard é a sua nova Home!
       },
       {
-        path: "perfil", // Representa o /admin/perfil (Perfil)
+        path: "perfil", // Representa a rota "/perfil"
         element: <AdminProfile /> 
       }
     ]
+  },
+  {
+    path: "/login",
+    element: <Login />, // Já deixei a rota de login pronta aqui para o futuro
   }
 ]);

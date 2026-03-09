@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { jsPDF } from "jspdf"; // IMPORTAÇÃO OBRIGATÓRIA PARA O PDF
 
 // --- Ícones SVG embutidos ---
 const Search = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>;
@@ -41,7 +42,114 @@ export default function AdminDashboard() {
     return 'badge-info';
   };
 
-  const shortId = (id) => id ? id.substring(0, 8).toUpperCase() : '';
+  const shortId = (id) => id ? id.substring(0, 8).toUpperCase() : 'N/A';
+
+  const formatarData = (dataStr) => {
+    if (!dataStr) return 'Não informada';
+    const partes = dataStr.split('-');
+    if (partes.length === 3) return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    return dataStr;
+  };
+
+  // ========================================================
+  // FUNÇÃO QUE GERA O PDF EXATAMENTE IGUAL AO SEU MODELO
+  // ========================================================
+  const gerarPDF = (atm) => {
+    const doc = new jsPDF();
+    let y = 20;
+
+    // --- CABEÇALHO ---
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("ATM - AUTORIZAÇÃO DE TRANSPORTE DE MERCADORIA", 105, y, { align: "center" });
+    y += 8;
+    
+    doc.setFontSize(12);
+    doc.text("SISTEMA DE GESTÃO LOGÍSTICA", 105, y, { align: "center" });
+    y += 10;
+    
+    doc.setFontSize(11);
+    doc.text(`N° ATM: ${shortId(atm.id)}`, 105, y, { align: "center" });
+    y += 10;
+
+    // Função de ajuda para desenhar linhas de dados robustas
+    const addRow = (label1, val1, label2 = "", val2 = "") => {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(10);
+      doc.text(label1, 20, y);
+      
+      doc.setFont("helvetica", "normal");
+      doc.text(val1 ? String(val1) : "Não informado", 65, y); // Margem alinhada
+      
+      if (label2) {
+        doc.setFont("helvetica", "bold");
+        doc.text(label2, 120, y);
+        doc.setFont("helvetica", "normal");
+        doc.text(val2 ? String(val2) : "Não informado", 155, y);
+      }
+      y += 8;
+    };
+
+    const addSectionTitle = (title) => {
+      y += 2;
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(11);
+      doc.text(title, 20, y);
+      y += 8;
+    };
+
+    // --- 1. IDENTIFICAÇÃO ---
+    addSectionTitle("1. IDENTIFICAÇÃO");
+    addRow("Solicitante:", atm.solicitacao, "Data da Solicitação:", formatarData(atm.data_solicitacao));
+    addRow("Centro de Custo / WBS:", atm.wbs, "", "");
+    y += 2;
+
+    // --- 2. LOCAL DA COLETA (ORIGEM) ---
+    addSectionTitle("2. LOCAL DA COLETA (ORIGEM)");
+    const enderecoOrigem = `${atm.origem?.nome_local || 'Não informado'}, ${atm.origem?.municipio || ''}`;
+    addRow("Endereço de Coleta:", enderecoOrigem);
+    
+    const dataCriacao = atm.created_at ? atm.created_at.split('T')[0] : '';
+    addRow("Data Previsão:", formatarData(dataCriacao)); 
+    y += 2;
+
+    // --- 3. LOCAL DA ENTREGA (DESTINO) ---
+    addSectionTitle("3. LOCAL DA ENTREGA (DESTINO)");
+    const enderecoDestino = `${atm.destino?.nome_local || 'Destinatário'}, ${atm.destino?.municipio || ''}`;
+    addRow("Endereço de Entrega:", enderecoDestino);
+    addRow("Data Previsão:", formatarData(atm.data_entrega));
+    y += 2;
+
+    // --- 4. DADOS DO MATERIAL E FRETE ---
+    addSectionTitle("4. DADOS DO MATERIAL E FRETE");
+    addRow("Transportadora:", atm.transportadora?.nome || "A Definir");
+    addRow("Peso Estimado:", atm.peso ? `${atm.peso} kg` : "Não informado", "Volume:", atm.volume ? `${atm.volume} m³` : "Não informado");
+    addRow("Tipo Veículo:", atm.veiculo, "Tipo de Frete:", atm.tipo_frete);
+    addRow("Pedido de Compra:", atm.pedido_compra, "Nota Fiscal:", atm.nf);
+    y += 2;
+
+    // --- 5. OBSERVAÇÕES ---
+    addSectionTitle("5. OBSERVAÇÕES");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(10);
+    const obsText = String(atm.observacoes || "Nenhuma observação.");
+    const linhasObs = doc.splitTextToSize(obsText, 170);
+    doc.text(linhasObs, 20, y);
+    y += (linhasObs.length * 6) + 20; // Espaço grande para a assinatura
+
+    // --- ASSINATURA ---
+    doc.setFont("helvetica", "bold");
+    const nomeSolicitante = String(atm.solicitacao || 'SISTEMA').toUpperCase();
+    doc.text(`ASSINATURA DO SOLICITANTE: ${nomeSolicitante}`, 20, y);
+    y += 10;
+    
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.text("Documento gerado eletronicamente via ATM Log.", 20, y);
+
+    // Salva o PDF no computador
+    doc.save(`ATM_${shortId(atm.id)}_Autorizacao.pdf`);
+  };
 
   return (
     <>
@@ -74,7 +182,7 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      {/* MODAL RESTAURADO COM O CSS CORRETO */}
+      {/* MODAL */}
       {selectedAtm && (
         <div className="modal-overlay">
           <div className="modal-content fade-in">
@@ -91,18 +199,18 @@ export default function AdminDashboard() {
                 <div className="modal-section">
                   <h4>Identificação</h4>
                   <ul>
-                    <li><span>Solicitante:</span> <strong>{selectedAtm.solicitacao}</strong></li>
-                    <li><span>Pedido:</span> <strong>{selectedAtm.pedido_compra || 'N/A'}</strong></li>
-                    <li><span>Nota Fiscal:</span> <strong>{selectedAtm.nf || 'N/A'}</strong></li>
-                    <li><span>WBS:</span> <strong>{selectedAtm.wbs || 'N/A'}</strong></li>
+                    <li><span>Solicitante:</span> <strong>{selectedAtm.solicitacao || 'Não informado'}</strong></li>
+                    <li><span>Pedido:</span> <strong>{selectedAtm.pedido_compra || 'Não informado'}</strong></li>
+                    <li><span>Nota Fiscal:</span> <strong>{selectedAtm.nf || 'Não informado'}</strong></li>
+                    <li><span>WBS:</span> <strong>{selectedAtm.wbs || 'Não informado'}</strong></li>
                   </ul>
                 </div>
                 <div className="modal-section">
                   <h4>Carga e Veículo</h4>
                   <ul>
-                    <li><span>Peso:</span> <strong>{selectedAtm.peso} kg</strong></li>
-                    <li><span>Volume:</span> <strong>{selectedAtm.volume} m³</strong></li>
-                    <li><span>Veículo:</span> <strong>{selectedAtm.veiculo}</strong></li>
+                    <li><span>Peso:</span> <strong>{selectedAtm.peso ? `${selectedAtm.peso} kg` : 'Não informado'}</strong></li>
+                    <li><span>Volume:</span> <strong>{selectedAtm.volume ? `${selectedAtm.volume} m³` : 'Não informado'}</strong></li>
+                    <li><span>Veículo:</span> <strong>{selectedAtm.veiculo || 'Não informado'}</strong></li>
                     <li><span>Status:</span> <span className={`badge ${getStatusClass(selectedAtm.status)}`}>{selectedAtm.status}</span></li>
                   </ul>
                 </div>
@@ -110,7 +218,9 @@ export default function AdminDashboard() {
             </div>
 
             <div className="modal-footer">
-              <button className="btn-danger" onClick={() => alert('PDF não disponível')}><FileText size={18}/> PDF</button>
+              <button className="btn-danger" onClick={() => gerarPDF(selectedAtm)}>
+                <FileText size={18}/> Gerar PDF
+              </button>
               <button className="btn-secondary" onClick={() => setSelectedAtm(null)}>Fechar</button>
             </div>
           </div>
