@@ -1,14 +1,13 @@
+// CardExpandido.jsx
 import React, { useState } from 'react';
 import BtnPdf from '../BtnPdf/BtnPdf'; 
+import CardEditavel from '../CardEditavel/CardEditavel';
 
 const X = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>;
 const EditIcon = ({ size = 18 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
-const SaveIcon = ({ size = 18 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>;
 
 export default function CardExpandido({ atm, onClose, onAtmUpdated }) {
-  // Estado para controlar se estamos a ver ou a editar
   const [modoEdicao, setModoEdicao] = useState(false);
-  const [salvando, setSalvando] = useState(false);
 
   if (!atm) return null;
 
@@ -32,45 +31,16 @@ export default function CardExpandido({ atm, onClose, onAtmUpdated }) {
     return Number(valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   };
 
-  // Função que envia os dados para o servidor
-  const handleSalvarEdicao = async (e) => {
-    e.preventDefault();
-    setSalvando(true);
-    
-    const formData = new FormData(e.target);
-    const dadosAtualizados = Object.fromEntries(formData.entries());
-
-    try {
-      const resposta = await fetch(`http://localhost:3001/api/admin/transportes/${atm.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: dadosAtualizados.status,
-          cotacao_bid: dadosAtualizados.valor_frete,
-          nf: dadosAtualizados.nf,
-          pedido_compra: dadosAtualizados.pedido_compra,
-          observacoes: dadosAtualizados.observacoes
-        }),
-      });
-
-      if (resposta.ok) {
-        setModoEdicao(false);
-        // Chama a função que passámos do Dashboard para recarregar a tabela
-        if(onAtmUpdated) onAtmUpdated(); 
-      } else {
-        alert('Erro ao atualizar o pedido no servidor.');
-      }
-    } catch (erro) {
-      alert('Erro de conexão ao tentar salvar.');
-    } finally {
-      setSalvando(false);
-    }
+  const lidarComSalvar = () => {
+    setModoEdicao(false); // Sai do modo edição
+    if (onAtmUpdated) onAtmUpdated(); // Atualiza a tabela
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal-content fade-in" style={{ maxWidth: '900px' }}>
         
+        {/* CABEÇALHO DO MODAL (Fixo) */}
         <div className="modal-header">
           <div>
             <span className="modal-subtitle">{modoEdicao ? 'Editando Informações' : 'Ficha Cadastral Logística'}</span>
@@ -79,8 +49,17 @@ export default function CardExpandido({ atm, onClose, onAtmUpdated }) {
           <button className="btn-close" onClick={onClose}><X size={24} /></button>
         </div>
 
-        {/* SE ESTIVERMOS NO MODO DE VISUALIZAÇÃO NORMAL */}
-        {!modoEdicao && (
+        {/* DECISÃO DE RENDERIZAÇÃO: MODO LEITURA OU MODO EDIÇÃO */}
+        {modoEdicao ? (
+          
+          <CardEditavel 
+            atm={atm} 
+            onCancelar={() => setModoEdicao(false)} 
+            onSalvar={lidarComSalvar} 
+          />
+
+        ) : (
+          
           <>
             <div className="modal-body" style={{ maxHeight: '70vh', overflowY: 'auto', padding: '2rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2.5rem' }}>
@@ -129,7 +108,6 @@ export default function CardExpandido({ atm, onClose, onAtmUpdated }) {
                     <span style={{ color: '#065f46', fontWeight: 'bold' }}>Valor do Frete:</span> 
                     <strong style={{ color: '#059669', fontSize: '1.2rem' }}>{formatarValor(atm.valor_nf || atm.cotacao_bid)}</strong>
                   </div>
-                  {/* Caixa de Observações */}
                   <div style={{ backgroundColor: '#fffbeb', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #fde68a' }}>
                     <span style={{ display: 'block', fontSize: '0.8rem', color: '#92400e', textTransform: 'uppercase', fontWeight: 'bold', marginBottom: '0.5rem' }}>Observações do Solicitante</span>
                     <p style={{ margin: 0, fontSize: '0.9rem', color: '#92400e' }}>{atm.observacoes || 'Nenhuma observação extra registrada.'}</p>
@@ -139,10 +117,8 @@ export default function CardExpandido({ atm, onClose, onAtmUpdated }) {
             </div>
 
             <div className="modal-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              {/* Botão de PDF à esquerda */}
               <BtnPdf atm={atm} />
               
-              {/* Botões de Ação à direita */}
               <div style={{ display: 'flex', gap: '1rem' }}>
                 <button 
                   onClick={() => setModoEdicao(true)} 
@@ -153,59 +129,6 @@ export default function CardExpandido({ atm, onClose, onAtmUpdated }) {
               </div>
             </div>
           </>
-        )}
-
-        {/* =========================================================
-            SE ESTIVERMOS NO MODO DE EDIÇÃO (FORMULÁRIO)
-            ========================================================= */}
-        {modoEdicao && (
-          <form onSubmit={handleSalvarEdicao}>
-            <div className="modal-body" style={{ padding: '2rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
-                
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontWeight: 'bold', color: '#374151' }}>Status do Transporte</label>
-                  <select name="status" defaultValue={atm.status} style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }}>
-                    <option value="Aguardando Aprovação">Aguardando Aprovação</option>
-                    <option value="Aprovado">Aprovado</option>
-                    <option value="Em Trânsito">Em Trânsito</option>
-                    <option value="Entregue">Entregue</option>
-                    <option value="Cancelado">Cancelado</option>
-                  </select>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontWeight: 'bold', color: '#374151' }}>Valor do Frete (R$)</label>
-                  <input type="number" step="0.01" name="valor_frete" defaultValue={atm.cotacao_bid || atm.valor_frete || ''} placeholder="Ex: 1500.00" style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }} />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontWeight: 'bold', color: '#374151' }}>Pedido de Compra</label>
-                  <input type="text" name="pedido_compra" defaultValue={atm.pedido_compra || ''} placeholder="Atualizar Pedido..." style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }} />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                  <label style={{ fontWeight: 'bold', color: '#374151' }}>Nota Fiscal</label>
-                  <input type="text" name="nf" defaultValue={atm.nf || ''} placeholder="Atualizar NF..." style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none' }} />
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', gridColumn: 'span 2' }}>
-                  <label style={{ fontWeight: 'bold', color: '#374151' }}>Observações / Anotações</label>
-                  <textarea name="observacoes" defaultValue={atm.observacoes || ''} rows="3" placeholder="Anotações internas..." style={{ padding: '0.75rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', outline: 'none', resize: 'vertical' }}></textarea>
-                </div>
-
-              </div>
-            </div>
-
-            <div className="modal-footer" style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', backgroundColor: '#f9fafb' }}>
-              <button type="button" onClick={() => setModoEdicao(false)} style={{ padding: '0.625rem 1.5rem', borderRadius: '0.5rem', border: '1px solid #d1d5db', cursor: 'pointer', backgroundColor: 'transparent', fontWeight: 'bold', color: '#374151' }}>
-                Cancelar
-              </button>
-              <button type="submit" disabled={salvando} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#2563eb', color: 'white', padding: '0.625rem 1.5rem', borderRadius: '0.5rem', border: 'none', cursor: 'pointer', fontWeight: 'bold' }}>
-                {salvando ? 'A Salvar...' : <><SaveIcon size={18} /> Salvar Alterações</>}
-              </button>
-            </div>
-          </form>
         )}
 
       </div>
