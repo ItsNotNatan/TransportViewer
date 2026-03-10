@@ -62,15 +62,39 @@ export default function AdminDashboard() {
         <div className="table-container">
           <table className="data-table">
             <thead>
-              <tr><th>ID ATM</th><th>Pedido</th><th>NF</th><th>WBS</th><th>Rota</th><th>Veículo</th><th>Status</th><th>Ações</th></tr>
+              <tr>
+                <th>ID ATM</th>
+                <th>Pedido</th>
+                <th>NF</th>
+                <th>Solicitante</th> {/* <- ADICIONADO AQUI */}
+                <th>WBS</th>
+                <th>Rota</th>
+                <th>Tipo de Frete</th> {/* <- ADICIONADO AQUI */}
+                <th>Valor Frete</th> {/* <- ADICIONADO AQUI */}
+                <th>Veículo</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
             </thead>
             <tbody>
-              {carregando ? (<tr><td colSpan="8" className="text-center" style={{padding: '2rem'}}>Carregando...</td></tr>) : atmsFiltrados.map((atm) => (
+              {/* O colSpan foi atualizado de 8 para 11 por conta das novas colunas */}
+              {carregando ? (<tr><td colSpan="11" className="text-center" style={{padding: '2rem'}}>Carregando...</td></tr>) : atmsFiltrados.map((atm) => (
                 <tr key={atm.id}>
                   <td className="font-bold" title={atm.id}>#{shortId(atm.id)}</td>
-                  <td>{atm.pedido_compra || '-'}</td><td>{atm.nf || '-'}</td><td>{atm.wbs || '-'}</td>
+                  <td>{atm.pedido_compra || '-'}</td>
+                  <td>{atm.nf || '-'}</td>
+                  
+                  {/* Solicitante (usando a mesma chave atm.solicitacao do PDF) */}
+                  <td>{atm.solicitacao || '-'}</td>
+                  
+                  <td>{atm.wbs || '-'}</td>
                   <td>De: {atm.origem?.municipio} <br/>Para: {atm.destino?.municipio}</td>
-                  <td>{atm.veiculo}</td>
+                  
+                  {/* Tipo e Valor do Frete */}
+                  <td>{atm.tipo_frete || '-'}</td>
+                  <td>{atm.valor_frete ? `R$ ${Number(atm.valor_frete).toFixed(2).replace('.', ',')}` : '-'}</td>
+                  
+                  <td>{atm.veiculo || '-'}</td>
                   <td><span className={`badge ${getStatusClass(atm.status)}`}>{atm.status}</span></td>
                   <td>
                     {/* AQUI A MÁGICA ACONTECE. Clicou, selecionou o ATM. */}
