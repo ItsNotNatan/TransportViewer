@@ -1,8 +1,7 @@
 // AdminDashboard.jsx
 import React, { useState, useEffect } from 'react';
-import CardExpandido from '../../componentes/CardExpandido/CardExpandido'; // IMPORTANDO O NOSSO NOVO COMPONENTE
+import CardExpandido from '../../componentes/CardExpandido/CardExpandido';
 
-// --- Ícones SVG embutidos ---
 const Search = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>;
 const TableList = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/></svg>;
 const FolderOpen = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>;
@@ -66,38 +65,30 @@ export default function AdminDashboard() {
                 <th>ID ATM</th>
                 <th>Pedido</th>
                 <th>NF</th>
-                <th>Solicitante</th> {/* <- ADICIONADO AQUI */}
+                <th>Solicitante</th>
                 <th>WBS</th>
                 <th>Rota</th>
-                <th>Tipo de Frete</th> {/* <- ADICIONADO AQUI */}
-                <th>Valor Frete</th> {/* <- ADICIONADO AQUI */}
+                <th>Tipo de Frete</th>
+                <th>Valor Frete</th>
                 <th>Veículo</th>
                 <th>Status</th>
                 <th>Ações</th>
               </tr>
             </thead>
             <tbody>
-              {/* O colSpan foi atualizado de 8 para 11 por conta das novas colunas */}
               {carregando ? (<tr><td colSpan="11" className="text-center" style={{padding: '2rem'}}>Carregando...</td></tr>) : atmsFiltrados.map((atm) => (
                 <tr key={atm.id}>
                   <td className="font-bold" title={atm.id}>#{shortId(atm.id)}</td>
                   <td>{atm.pedido_compra || '-'}</td>
                   <td>{atm.nf || '-'}</td>
-                  
-                  {/* Solicitante (usando a mesma chave atm.solicitacao do PDF) */}
                   <td>{atm.solicitacao || '-'}</td>
-                  
                   <td>{atm.wbs || '-'}</td>
                   <td>De: {atm.origem?.municipio} <br/>Para: {atm.destino?.municipio}</td>
-                  
-                  {/* Tipo e Valor do Frete */}
                   <td>{atm.tipo_frete || '-'}</td>
-                  <td>{atm.valor_frete ? `R$ ${Number(atm.valor_frete).toFixed(2).replace('.', ',')}` : '-'}</td>
-                  
+                  <td>{(atm.cotacao_bid || atm.valor_frete) ? `R$ ${Number(atm.cotacao_bid || atm.valor_frete).toFixed(2).replace('.', ',')}` : '-'}</td>
                   <td>{atm.veiculo || '-'}</td>
                   <td><span className={`badge ${getStatusClass(atm.status)}`}>{atm.status}</span></td>
                   <td>
-                    {/* AQUI A MÁGICA ACONTECE. Clicou, selecionou o ATM. */}
                     <button className="btn-action" onClick={() => setSelectedAtm(atm)}>
                       <FolderOpen size={16} /> Abrir
                     </button>
@@ -109,10 +100,14 @@ export default function AdminDashboard() {
         </div>
       </section>
 
-      {/* RENDERIZANDO O NOSSO COMPONENTE MODAL MODULAR */}
+      {/* RENDERIZANDO O NOSSO COMPONENTE MODAL */}
       <CardExpandido 
         atm={selectedAtm} 
-        onClose={() => setSelectedAtm(null)} 
+        onClose={() => setSelectedAtm(null)}
+        onAtmUpdated={() => {
+          setSelectedAtm(null); // Fecha o modal após editar
+          buscarPedidos();      // Atualiza a tabela
+        }} 
       />
     </>
   );
