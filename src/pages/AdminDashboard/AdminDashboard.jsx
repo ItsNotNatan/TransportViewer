@@ -88,9 +88,6 @@ export default function AdminDashboard() {
         
         {/* CABEÇALHO */}
         <div className="section-header" style={{ marginBottom: '1rem' }}>
-          <h3 className="section-title" style={{ margin: 0, marginBottom: '1rem' }}>
-            <TableList size={24} className="text-primary" /> Painel de Controle (Logística e Faturamento)
-          </h3>
           
           {/* BARRA DE FILTROS SIMULTÂNEOS */}
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
