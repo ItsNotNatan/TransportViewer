@@ -1,13 +1,12 @@
-// src/componentes/Dashboard.jsx (Ou TabelaDashboard.jsx)
+// src/componentes/Dashboard.jsx
 import React, { useState } from 'react';
+import Filtro from '../Filtro/Filtro';
 
-// --- Ícones SVG embutidos ---
 const TableList = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/></svg>;
 const FolderOpen = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>;
-const XCircle = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>;
 
 export default function Dashboard({ atms, carregando, onOpenAtm }) {
-  // ESTADOS DOS FILTROS SIMULTÂNEOS
+  // O estado do filtro fica aqui no "Pai" para poder filtrar a tabela em baixo
   const [filtros, setFiltros] = useState({ id: '', solicitante: '', pedido: '', nf: '' });
 
   const handleFiltroChange = (e) => {
@@ -19,9 +18,12 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     setFiltros({ id: '', solicitante: '', pedido: '', nf: '' });
   };
 
-  // LÓGICA DE FILTRAGEM SIMULTÂNEA (AND)
+  const shortId = (id) => id ? id.substring(0, 8).toUpperCase() : 'N/A';
+
+  // LÓGICA DE FILTRAGEM (AND)
   const atmsFiltrados = atms.filter(atm => {
-    const matchId = !filtros.id || atm.id?.toLowerCase().includes(filtros.id.toLowerCase().trim());
+    const idCurtoAtm = shortId(atm.id);
+    const matchId = !filtros.id || idCurtoAtm.includes(filtros.id.toUpperCase().trim());
     const matchSolicitante = !filtros.solicitante || atm.solicitacao?.toLowerCase().includes(filtros.solicitante.toLowerCase().trim());
     const matchPedido = !filtros.pedido || atm.pedido_compra?.toLowerCase().includes(filtros.pedido.toLowerCase().trim());
     const matchNf = !filtros.nf || atm.nf?.toLowerCase().includes(filtros.nf.toLowerCase().trim());
@@ -34,8 +36,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     return 'badge-info';
   };
 
-  const shortId = (id) => id ? id.substring(0, 8).toUpperCase() : 'N/A';
-
   const formatarDataCurta = (dataStr) => {
     if (!dataStr) return '-';
     const partes = dataStr.split('T')[0].split('-');
@@ -43,46 +43,22 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     return dataStr;
   };
 
-  const temFiltroAtivo = Object.values(filtros).some(valor => valor !== '');
-
   return (
     <section className="fade-in section-dashboard">
       
-      {/* CABEÇALHO E FILTROS */}
+      {/* CABEÇALHO E COMPONENTE DE FILTRO */}
       <div className="section-header" style={{ marginBottom: '1rem' }}>
         
-        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', backgroundColor: '#f9fafb', padding: '1rem', borderRadius: '0.5rem', border: '1px solid #e5e7eb' }}>
-          <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#6b7280', display: 'block', marginBottom: '0.25rem' }}>ID ATM</label>
-            <input type="text" name="id" placeholder="Buscar ID..." value={filtros.id} onChange={handleFiltroChange} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', outline: 'none' }} />
-          </div>
-          <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#6b7280', display: 'block', marginBottom: '0.25rem' }}>Solicitante</label>
-            <input type="text" name="solicitante" placeholder="Buscar Solicitante..." value={filtros.solicitante} onChange={handleFiltroChange} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', outline: 'none' }} />
-          </div>
-          <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#6b7280', display: 'block', marginBottom: '0.25rem' }}>Pedido (PC)</label>
-            <input type="text" name="pedido" placeholder="Buscar Pedido..." value={filtros.pedido} onChange={handleFiltroChange} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', outline: 'none' }} />
-          </div>
-          <div style={{ flex: '1 1 200px', minWidth: '150px' }}>
-            <label style={{ fontSize: '0.8rem', fontWeight: 'bold', color: '#6b7280', display: 'block', marginBottom: '0.25rem' }}>Nota Fiscal (NF)</label>
-            <input type="text" name="nf" placeholder="Buscar NF..." value={filtros.nf} onChange={handleFiltroChange} style={{ width: '100%', padding: '0.5rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', outline: 'none' }} />
-          </div>
-
-          {temFiltroAtivo && (
-            <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-              <button 
-                onClick={limparFiltros}
-                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', height: '37px', borderRadius: '0.375rem', border: 'none', backgroundColor: '#fee2e2', color: '#ef4444', fontWeight: 'bold', cursor: 'pointer' }}
-              >
-                <XCircle size={16} /> Limpar
-              </button>
-            </div>
-          )}
-        </div>
+        {/* INSERINDO O NOSSO COMPONENTE MODULAR */}
+        <Filtro 
+          atms={atms}
+          filtros={filtros}
+          onFiltroChange={handleFiltroChange}
+          onLimpar={limparFiltros}
+        />
       </div>
       
-      {/* TABELA DE DADOS COMPLETA */}
+      {/* TABELA DE DADOS */}
       <div className="table-container" style={{ overflowX: 'auto' }}>
         <table className="data-table" style={{ whiteSpace: 'nowrap', width: '100%' }}>
           <thead>
