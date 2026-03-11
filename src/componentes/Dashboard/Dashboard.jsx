@@ -1,7 +1,7 @@
 // src/componentes/Dashboard/Dashboard.jsx
 import React, { useState } from 'react';
-import Filtro from '../Filtro/Filtro';
-import * as XLSX from 'xlsx'; // Importação da biblioteca de Excel
+import Filtro from '../Filtro/Filtro'; 
+import * as XLSX from 'xlsx';
 
 // --- Ícones SVG ---
 const TableList = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/></svg>;
@@ -29,7 +29,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     return dataStr;
   };
 
-  // LÓGICA DE FILTRAGEM (O que estiver aqui vai para o Excel)
   const atmsFiltrados = atms.filter(atm => {
     const idCurtoAtm = shortId(atm.id);
     const matchId = !filtros.id || idCurtoAtm.includes(filtros.id.toUpperCase().trim());
@@ -46,7 +45,7 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
   };
 
   // ========================================================
-  // LÓGICA DE EXPORTAÇÃO PARA EXCEL
+  // LÓGICA DE EXPORTAÇÃO PARA EXCEL MODO "ORIGINAL"
   // ========================================================
   const exportarExcel = () => {
     if (atmsFiltrados.length === 0) {
@@ -54,46 +53,104 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
       return;
     }
 
-    // 1. Organiza os dados com nomes de colunas "bonitos" para o Excel
-    const dadosFormatados = atmsFiltrados.map(atm => ({
-      "ID ATM": atm.numero_atm || shortId(atm.id),
-      "Status": atm.status || '-',
-      "Solicitante": atm.solicitacao || '-',
-      "Data Solicitação": atm.data_solicitacao ? atm.data_solicitacao.split('T')[0] : '-',
-      "Pedido de Compra": atm.pedido_compra || '-',
-      "Nota Fiscal": atm.nf || '-',
-      "WBS / C. Custo": atm.wbs || '-',
-      "Origem (Coleta)": atm.origem?.nome_local || '-',
-      "Cidade Origem": atm.origem?.municipio ? `${atm.origem.municipio} - ${atm.origem.uf}` : '-',
-      "Destino (Entrega)": atm.destino?.nome_local || '-',
-      "Cidade Destino": atm.destino?.municipio ? `${atm.destino.municipio} - ${atm.destino.uf}` : '-',
-      "Transportadora": atm.transportadora?.nome || '-',
-      "Veículo / Modal": atm.veiculo || atm.modal || '-',
-      "Tipo Frete": atm.tipo_frete || '-',
-      "Peso (kg)": atm.peso || '-',
-      "Volume (m³)": atm.volume || '-',
-      "Previsão Entrega": atm.data_entrega ? atm.data_entrega.split('T')[0] : '-',
-      "Valor BID (R$)": atm.cotacao_bid || atm.valor_bid || '-',
-      "Fatura / CT-e": atm.fatura_cte || '-',
-      "Valor Fatura (R$)": atm.valor || atm.valor_nf || '-',
-      "Data Mapeamento": atm.data_mapeamento ? atm.data_mapeamento.split('T')[0] : '-',
-      "Emissão CT-e": atm.data_emissao ? atm.data_emissao.split('T')[0] : '-',
-      "Vencimento": atm.vencimento ? atm.vencimento.split('T')[0] : '-',
-      "Elemento PEP": atm.elemento_pep_cc_wbs || '-',
-      "Registrado SAP": atm.registrado_sap || 'NÃO',
-      "Registro SAP": atm.registro_sap || '-',
-      "Observações": atm.observacoes || '-'
-    }));
+    // 1. Organiza os dados EXACTAMENTE com os nomes da sua planilha original
+    const dadosFormatados = atmsFiltrados.map(atm => {
+      // Cria a rota automática "Origem x Destino"
+      const rotaStr = (atm.origem?.municipio && atm.destino?.municipio) 
+        ? `${atm.origem.uf} ${atm.origem.municipio} x ${atm.destino.municipio} ${atm.destino.uf}`
+        : '-';
 
-    // 2. Converte os dados para uma planilha
+      return {
+        "DATA DA SOLICITAÇÃO": atm.data_solicitacao ? atm.data_solicitacao.split('T')[0] : '-',
+        "ATM": atm.numero_atm || shortId(atm.id),
+        "PEDIDO DE COMPRA": atm.pedido_compra || '-',
+        "NF": atm.nf || '-',
+        "WBS": atm.wbs || '-',
+        "UF": atm.origem?.uf || '-',
+        "MUNICIPIO": atm.origem?.municipio || '-',
+        "LOCAL DE COLETA": atm.origem?.nome_local || '-',
+        "X": "x", // Coluna de separação que existe no seu excel
+        "LOCAL DA ENTREGA": atm.destino?.nome_local || '-',
+        "UF 2": atm.destino?.uf || '-',
+        "MUNICIPIO 2": atm.destino?.municipio || '-',
+        "Fracionado/Dedicado": atm.tipo_frete || '-',
+        "SOLICITAÇÃO": atm.solicitacao || '-',
+        "VEÍCULO": atm.veiculo || atm.modal || '-',
+        "TRANSPORTADORA": atm.transportadora?.nome || '-',
+        "COTAÇÃO/BID": atm.cotacao_bid ? "Cotação" : (atm.valor_bid ? "BID" : '-'),
+        "VALOR NF": atm.valor_nf || '-',
+        "VOLUME": atm.volume || '-',
+        "PESO": atm.peso || '-',
+        "VALOR BID (Dedicado)": atm.valor_bid_dedicado || '-',
+        "DATA DE ENTREGA": atm.data_entrega ? atm.data_entrega.split('T')[0] : '-',
+        "STATUS": atm.status || '-',
+        "OBSERVAÇÕES": atm.observacoes || '-',
+        "Valor BID": atm.valor_bid || atm.cotacao_bid || '-',
+        "ROTA": rotaStr,
+        "TIPO": atm.tipo_documento || '-',
+        "DATA MAPEAMENTO": atm.data_mapeamento ? atm.data_mapeamento.split('T')[0] : '-',
+        "CTE": atm.fatura_cte || '-',
+        "VALOR": atm.valor || '-',
+        "DATA EMISSÃO": atm.data_emissao ? atm.data_emissao.split('T')[0] : '-',
+        "VENCIMENTO": atm.vencimento ? atm.vencimento.split('T')[0] : '-',
+        "ELEMENTO PEP - CC / WBS": atm.elemento_pep_cc_wbs || '-',
+        "VALIDAÇÃO PEP - CC /WBS": atm.validacao_pep || '-',
+        "Registrado SAP (S/N)": atm.registrado_sap || '-',
+        "Registro SAP": atm.registro_sap || '-',
+        "Lançamento FI (S/N)": atm.lancamento_fi || '-',
+        "Processo lançamento FI": atm.processo_lancamento_fi || '-'
+      };
+    });
+
     const worksheet = XLSX.utils.json_to_sheet(dadosFormatados);
     
-    // 3. Cria um "Livro de Excel" (Workbook) e anexa a planilha
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Gestão de Fretes");
+    // 2. Define o tamanho das colunas (Estilo do Excel) para não ficar esmagado
+    worksheet['!cols'] = [
+      { wch: 18 }, // DATA DA SOLICITAÇÃO
+      { wch: 10 }, // ATM
+      { wch: 18 }, // PEDIDO DE COMPRA
+      { wch: 12 }, // NF
+      { wch: 15 }, // WBS
+      { wch: 5 },  // UF
+      { wch: 20 }, // MUNICIPIO
+      { wch: 25 }, // LOCAL DE COLETA
+      { wch: 3 },  // X
+      { wch: 25 }, // LOCAL DA ENTREGA
+      { wch: 5 },  // UF 2
+      { wch: 20 }, // MUNICIPIO 2
+      { wch: 20 }, // Fracionado/Dedicado
+      { wch: 15 }, // SOLICITAÇÃO
+      { wch: 15 }, // VEÍCULO
+      { wch: 20 }, // TRANSPORTADORA
+      { wch: 15 }, // COTAÇÃO/BID
+      { wch: 12 }, // VALOR NF
+      { wch: 10 }, // VOLUME
+      { wch: 10 }, // PESO
+      { wch: 15 }, // VALOR BID (Dedicado)
+      { wch: 18 }, // DATA DE ENTREGA
+      { wch: 15 }, // STATUS
+      { wch: 40 }, // OBSERVAÇÕES
+      { wch: 15 }, // Valor BID
+      { wch: 40 }, // ROTA
+      { wch: 10 }, // TIPO
+      { wch: 18 }, // DATA MAPEAMENTO
+      { wch: 15 }, // CTE
+      { wch: 15 }, // VALOR
+      { wch: 15 }, // DATA EMISSÃO
+      { wch: 15 }, // VENCIMENTO
+      { wch: 25 }, // ELEMENTO PEP
+      { wch: 25 }, // VALIDAÇÃO PEP
+      { wch: 15 }, // Registrado SAP
+      { wch: 15 }, // Registro SAP
+      { wch: 15 }, // Lançamento FI
+      { wch: 20 }  // Processo lançamento FI
+    ];
 
-    // 4. Salva o arquivo e baixa automaticamente
-    XLSX.writeFile(workbook, "Relatorio_Gestao_de_Fretes_ATM.xlsx");
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Gestão de Fretes - ATM");
+    
+    // Baixa o ficheiro
+    XLSX.writeFile(workbook, "Gestao_de_Fretes_ATMLOG.xlsx");
   };
 
   return (
@@ -109,9 +166,9 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
         <button 
           onClick={exportarExcel} 
           style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#10b981', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}
-          title="Baixar Tabela Atual em Excel"
+          title="Baixar Tabela no Formato Original"
         >
-          <DownloadIcon size={18} /> Exportar Excel
+          <DownloadIcon size={18} /> Exportar Gestão de Fretes
         </button>
       </div>
 
@@ -125,7 +182,7 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
         />
       </div>
       
-      {/* TABELA DE DADOS */}
+      {/* TABELA DE DADOS NA TELA (Resumo visual, não muda) */}
       <div className="table-container" style={{ overflowX: 'auto' }}>
         <table className="data-table" style={{ whiteSpace: 'nowrap', width: '100%' }}>
           <thead>
