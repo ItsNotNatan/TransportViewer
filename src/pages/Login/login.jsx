@@ -1,28 +1,61 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom'; // Importação necessária para o Router
+import { useNavigate } from 'react-router-dom';
 import './login.css';
 
 // --- Ícones SVG embutidos ---
 const Truck = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-9h-5V5H10"/><path d="M17 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/><path d="M7 17a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z"/></svg>;
-const User = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
 const Mail = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>;
 const Lock = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>;
-const LogIn = ({ size = 24 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" x2="3" y1="12" y2="12"/></svg>;
 
 export default function Login() {
-  const navigate = useNavigate(); // Hook para mudar de página
-  const [isLoginMode, setIsLoginMode] = useState(true);
+  const navigate = useNavigate(); 
+  
+  // Estados para capturar os dados do formulário
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [erroValidacao, setErroValidacao] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setErroValidacao('');
 
-    // Simulação de login
-    setTimeout(() => {
+    try {
+      // Faz o pedido POST para o servidor
+      const response = await fetch('http://localhost:3001/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, senha })
+      });
+
+      // Validação de segurança para evitar o erro do "<!DOCTYPE" (HTML em vez de JSON)
+      const isJson = response.headers.get('content-type')?.includes('application/json');
+      if (!isJson) {
+        setErroValidacao('Erro no servidor. Verifique se o backend está a rodar.');
+        setIsLoading(false);
+        return;
+      }
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Se o login for aprovado, guarda as informações no navegador
+        localStorage.setItem('userName', data.nome);
+        localStorage.setItem('userPerfil', data.perfil);
+        
+        // Redireciona para o Dashboard (que está na rota "/")
+        navigate('/'); 
+      } else {
+        // Se a senha estiver errada, mostra a mensagem vinda do banco de dados
+        setErroValidacao(data.mensagem || 'E-mail ou palavra-passe incorretos.');
+      }
+    } catch (error) {
+      console.error("Erro de conexão:", error);
+      setErroValidacao('Sem conexão com o servidor. Tente novamente mais tarde.');
+    } finally {
       setIsLoading(false);
-      navigate('/home'); // REDIRECIONA PARA A HOME APÓS O LOGIN
-    }, 1000);
+    }
   };
 
   return (
@@ -31,45 +64,59 @@ export default function Login() {
         <div className="login-header">
           <div className="login-icon-wrapper"><Truck size={32} /></div>
           <h2 className="login-title">ATM<span className="text-primary">Log</span></h2>
-          <p className="login-subtitle">{isLoginMode ? 'Aceda à sua conta' : 'Crie o seu acesso'}</p>
+          <p className="login-subtitle">Acesso restrito a colaboradores</p>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group-container">
-            {!isLoginMode && (
-              <div className="form-group fade-in">
-                <label className="form-label">Nome Completo</label>
-                <div className="input-wrapper">
-                  <User className="input-icon" size={18} />
-                  <input type="text" placeholder="Seu nome" className="form-input" required />
-                </div>
-              </div>
-            )}
+            
+            {/* CAMPO DE E-MAIL */}
             <div className="form-group">
               <label className="form-label">E-mail Corporativo</label>
               <div className="input-wrapper">
                 <Mail className="input-icon" size={18} />
-                <input type="email" placeholder="seu@email.com" className="form-input" required />
+                <input 
+                  type="email" 
+                  placeholder="admin@comau.com" 
+                  className="form-input" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required 
+                />
               </div>
             </div>
+            
+            {/* CAMPO DE SENHA */}
             <div className="form-group">
               <label className="form-label">Palavra-passe</label>
               <div className="input-wrapper">
                 <Lock className="input-icon" size={18} />
-                <input type="password" placeholder="••••••••" className="form-input" required minLength={6} />
+                <input 
+                  type="password" 
+                  placeholder="••••••••" 
+                  className="form-input" 
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  required 
+                  minLength={6} 
+                />
               </div>
             </div>
+
+            {/* MENSAGEM DE ERRO (Só aparece se houver erro) */}
+            {erroValidacao && (
+              <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', marginTop: '0.5rem', fontWeight: 'bold' }}>
+                {erroValidacao}
+              </div>
+            )}
           </div>
 
-          <button type="submit" disabled={isLoading} className="btn-submit">
-            {isLoading ? <div className="spinner mx-auto"></div> : (isLoginMode ? 'Entrar no Sistema' : 'Criar Conta')}
+          <button type="submit" disabled={isLoading} className="btn-submit" style={{ marginTop: '1.5rem' }}>
+            {isLoading ? <div className="spinner mx-auto"></div> : 'Entrar no Sistema'}
           </button>
 
           <div className="login-footer">
-            <span className="text-muted">{isLoginMode ? 'Ainda não tem acesso?' : 'Já possui conta?'}</span>
-            <button type="button" onClick={() => setIsLoginMode(!isLoginMode)} className="btn-toggle">
-              {isLoginMode ? 'Criar conta grátis' : 'Fazer Login'}
-            </button>
+            <span className="text-muted" style={{ fontSize: '0.8rem' }}>Sistema Integrado de Gestão Logística</span>
           </div>
         </form>
       </div>

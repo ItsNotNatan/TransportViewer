@@ -1,28 +1,54 @@
-import { createBrowserRouter } from 'react-router-dom';
+import React from 'react';
+import { createBrowserRouter, Navigate } from 'react-router-dom';
 
 import Login from './pages/login/login';
-// A importação do Home antigo foi eliminada daqui!
 import AdminProfile from './pages/AdminProfile/AdminProfile';
 import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import Layout from './componentes/layout/layout';
 
+// ======================================================
+// COMPONENTE DE PROTEÇÃO (O "Segurança da Porta")
+// ======================================================
+const RotaPrivada = ({ children }) => {
+  // Verifica se existe alguém logado (se salvamos o nome no login)
+  const usuarioLogado = localStorage.getItem('userName');
+  
+  if (!usuarioLogado) {
+    // Se NÃO estiver logado, redireciona para a tela de login imediatamente
+    return <Navigate to="/login" replace />;
+  }
+  
+  // Se ESTIVER logado, deixa a pessoa entrar na tela que ela pediu
+  return children;
+};
+
+// ======================================================
+// CONFIGURAÇÃO DAS ROTAS
+// ======================================================
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />, // O Layout agora manda na página inicial
+    // Envolvemos o Layout (que tem o Menu e o Header) com a Rota Privada!
+    // Assim, todas as rotas filhas ficam protegidas automaticamente.
+    element: (
+      <RotaPrivada>
+        <Layout />
+      </RotaPrivada>
+    ), 
     children: [
       {
-        path: "", // O caminho vazio "" agora representa a rota raiz "/"
-        element: <AdminDashboard /> // O Dashboard é a sua nova Home!
+        path: "", 
+        element: <AdminDashboard /> 
       },
       {
-        path: "perfil", // Representa a rota "/perfil"
+        path: "perfil", 
         element: <AdminProfile /> 
       }
     ]
   },
   {
     path: "/login",
-    element: <Login />, // Já deixei a rota de login pronta aqui para o futuro
+    element: <Login />, 
   }
 ]);
+
