@@ -1,0 +1,156 @@
+// src/componentes/BtnExcel/BtnExcel.jsx
+import React from 'react';
+import ExcelJS from 'exceljs';
+import { saveAs } from 'file-saver';
+
+const DownloadIcon = ({ size = 20, className = "" }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+);
+
+export default function BtnExcel({ atmsFiltrados }) {
+  
+  const shortId = (id) => id ? id.substring(0, 8).toUpperCase() : 'N/A';
+
+  const exportarExcel = async () => {
+    if (!atmsFiltrados || atmsFiltrados.length === 0) {
+      alert("Não há dados para exportar com os filtros atuais.");
+      return;
+    }
+
+    try {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet('ATM');
+
+      worksheet.getCell('AA1').value = 'Controle de Ctes/ Nfe de Serviço';
+      worksheet.getCell('AA1').font = { bold: true, size: 14 };
+      worksheet.getCell('AA1').alignment = { horizontal: 'center' };
+      
+      worksheet.getCell('D2').value = 'Gestão de Fretes';
+      worksheet.getCell('D2').font = { bold: true, size: 16 };
+
+      worksheet.columns = [
+        { key: 'data_sol', width: 22 },           // 1
+        { key: 'atm', width: 12 },                // 2
+        { key: 'pedido', width: 20 },             // 3
+        { key: 'nf', width: 15 },                 // 4
+        { key: 'wbs', width: 15 },                // 5
+        { key: 'uf1', width: 6 },                 // 6
+        { key: 'mun1', width: 20 },               // 7
+        { key: 'coleta', width: 30 },             // 8
+        { key: 'x', width: 4 },                   // 9
+        { key: 'entrega', width: 30 },            // 10
+        { key: 'uf2', width: 6 },                 // 11
+        { key: 'mun2', width: 20 },               // 12
+        { key: 'tipo_frete', width: 22 },         // 13
+        { key: 'solicitacao', width: 20 },        // 14
+        { key: 'veiculo', width: 20 },            // 15
+        { key: 'transportadora', width: 25 },     // 16
+        { key: 'cotacao', width: 15 },            // 17
+        { key: 'valor_nf', width: 15 },           // 18
+        { key: 'volume', width: 12 },             // 19
+        { key: 'peso', width: 12 },               // 20
+        { key: 'valor_previsto', width: 22 },     // 21
+        { key: 'col1', width: 12 },               // 22
+        { key: 'status', width: 15 },             // 23
+        { key: 'obs', width: 35 },                // 24
+        { key: 'col_2', width: 10 },              // 25
+        { key: 'tipo_doc', width: 15 },           // 26
+        { key: 'data_map', width: 18 },           // 27
+        { key: 'fatura', width: 15 },             // 28
+        { key: 'valor', width: 15 },              // 29
+        { key: 'data_emissao', width: 15 },       // 30
+        { key: 'vencimento', width: 15 },         // 31
+        { key: 'elemento_pep', width: 25 },       // 32
+        { key: 'validacao_pep', width: 25 },      // 33
+        { key: 'lancamento_v360', width: 20 },    // 34
+        { key: 'id_v360', width: 15 },            // 35
+        { key: 'registrado_sap', width: 22 }      // 36
+      ];
+
+      const titulos = [
+        "DATA DA SOLICITAÇÃO", "ATM", "PEDIDO DE COMPRA", "NF", "WBS", "UF", "MUNICIPIO", "LOCAL DE COLETA", "X", 
+        "LOCAL DA ENTREGA", "UF 2", "MUNICIPIO 2", "Fracionado/Dedicado", "SOLICITAÇÃO", "VEÍCULO", "TRANSPORTADORA", 
+        "COTAÇÃO/BID", "VALOR NF", "VOLUME", "PESO", "Valor previsto do frete", "Column1", "STATUS", "OBSERVAÇÕES", 
+        "Coluna 2", "TIPO", "DATA MAPEAMENTO", "FATURA", "VALOR", "DATA EMISSÃO", "VENCIMENTO", "ELEMENTO PEP - CC / WBS", 
+        "VALIDAÇÃO PEP - CC /WBS", "Lançamento V360", "Id V360", "Registrado SAP (S/N)"
+      ];
+
+      const linhaCabecalho = worksheet.getRow(4);
+      linhaCabecalho.values = titulos;
+
+      linhaCabecalho.eachCell((cell) => {
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A8A' } };
+        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; 
+        cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
+      });
+      linhaCabecalho.height = 35;
+
+      atmsFiltrados.forEach(atm => {
+        const row = worksheet.addRow({
+          data_sol: atm.data_solicitacao ? atm.data_solicitacao.split('T')[0] : '-',
+          atm: atm.numero_atm || shortId(atm.id),
+          pedido: atm.pedido_compra || '-',
+          nf: atm.nf || '-',
+          wbs: atm.wbs || '-',
+          uf1: atm.origem?.uf || '-',
+          mun1: atm.origem?.municipio || '-',
+          coleta: atm.origem?.nome_local || '-',
+          x: 'x',
+          entrega: atm.destino?.nome_local || '-',
+          uf2: atm.destino?.uf || '-',
+          mun2: atm.destino?.municipio || '-',
+          tipo_frete: atm.tipo_frete || '-',
+          solicitacao: atm.solicitacao || '-',
+          veiculo: atm.veiculo || atm.modal || '-',
+          transportadora: atm.transportadora?.nome || '-',
+          cotacao: atm.cotacao_bid ? "Cotação" : (atm.valor_bid ? "BID" : '-'),
+          valor_nf: atm.valor_nf || '',
+          volume: atm.volume || '',
+          peso: atm.peso || '',
+          valor_previsto: atm.valor_bid_dedicado || '',
+          col1: '', 
+          status: atm.status || '-',
+          obs: atm.observacoes || '-',
+          col_2: '', 
+          tipo_doc: atm.tipo_documento || '-',
+          data_map: atm.data_mapeamento ? atm.data_mapeamento.split('T')[0] : '-',
+          fatura: atm.fatura_cte || '-',
+          valor: atm.valor || '',
+          data_emissao: atm.data_emissao ? atm.data_emissao.split('T')[0] : '-',
+          vencimento: atm.vencimento ? atm.vencimento.split('T')[0] : '-',
+          elemento_pep: atm.elemento_pep_cc_wbs || '-',
+          validacao_pep: atm.validacao_pep || '-',
+          lancamento_v360: '', 
+          id_v360: '', 
+          registrado_sap: atm.registrado_sap || '-'
+        });
+
+        row.eachCell((cell) => {
+          cell.alignment = { vertical: 'middle', horizontal: 'center' };
+          cell.border = { top: { style: 'thin', color: { argb: 'FFE5E7EB' } }, bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } } };
+        });
+      });
+
+      const buffer = await workbook.xlsx.writeBuffer();
+      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      saveAs(blob, "Gestao_de_Fretes.xlsx");
+
+    } catch (error) {
+      console.error("Falha ao exportar excel: ", error);
+      alert("Houve um problema ao gerar o arquivo.");
+    }
+  };
+
+  return (
+    <button 
+      onClick={exportarExcel} 
+      style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', backgroundColor: '#10b981', color: 'white', padding: '0.5rem 1rem', borderRadius: '0.5rem', border: 'none', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 1px 2px rgba(0,0,0,0.1)' }}
+      title="Baixar Tabela no Formato Original"
+    >
+      <DownloadIcon size={18} /> Exportar Gestão de Fretes
+    </button>
+  );
+}
