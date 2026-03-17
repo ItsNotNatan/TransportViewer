@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import FiltroOP from '../FiltroOP/FiltroOP'; 
 import FiltroFat from '../FiltroFat/FiltroFat';
 import BtnExcel from '../BtnExcel/BtnExcel';
+import './Dashboard.css'; // <-- IMPORTAÇÃO DO CSS
 
 const TableList = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/></svg>;
 const FolderOpen = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>;
@@ -11,10 +12,10 @@ const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" heig
 export default function Dashboard({ atms, carregando, onOpenAtm }) {
   const [filtros, setFiltros] = useState({ 
     id: '', solicitante: '', pedido: '', nf: '', data_inicio: '', data_fim: '', data_especifica: '', status: '', transportadora: '',
-    
-    // 👇 NOVOS CAMPOS AQUI 👇
     fatura: '', elemento_pep: '', registrado_sap: '', tipo_documento: '', validacao_pep: '',
-    data_map_inicio: '', data_map_fim: '', data_emissao_inicio: '', data_emissao_fim: '', data_venc_inicio: '', data_venc_fim: ''
+    data_map_inicio: '', data_map_fim: '', data_map_especifica: '',
+    data_emissao_inicio: '', data_emissao_fim: '', data_emi_especifica: '',
+    data_venc_inicio: '', data_venc_fim: '', data_venc_especifica: '' 
   });
   
   const [abertoFiltroOp, setAbertoFiltroOp] = useState(false);
@@ -84,11 +85,9 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     }
   };
 
-  // Função Auxiliar para testar Lotes de Datas
   const isDataNoIntervalo = (dataBancoStr, dataFiltroInicio, dataFiltroFim) => {
     if (!dataFiltroInicio && !dataFiltroFim) return true;
     if (!dataBancoStr) return false;
-    
     const dBanco = new Date(dataBancoStr.split('T')[0]);
     if (dataFiltroInicio && dBanco < new Date(dataFiltroInicio)) return false;
     if (dataFiltroFim && dBanco > new Date(dataFiltroFim)) return false;
@@ -96,7 +95,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
   };
 
   const atmsFiltrados = atms.filter(atm => {
-    // --- LÓGICA DA OPERAÇÃO ---
     const idCurtoAtm = shortId(atm.id);
     const atmNum = atm.numero_atm ? String(atm.numero_atm).toUpperCase().trim() : '';
     const valorIdComparacao = atmNum || idCurtoAtm;
@@ -120,15 +118,37 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
       matchDataOp = isDataNoIntervalo(atmDateOpStr, filtros.data_inicio, filtros.data_fim);
     }
     
-    // --- LÓGICA DO FATURAMENTO ---
     const matchFatura = matchFiltroComIntervalo(atm.fatura_cte, filtros.fatura);
     const matchPep = matchFiltroComIntervalo(atm.elemento_pep_cc_wbs || atm.wbs, filtros.elemento_pep);
     const matchTipoDoc = matchMultiSelect(atm.tipo_documento, filtros.tipo_documento);
     const matchValidPep = matchMultiSelect(atm.validacao_pep, filtros.validacao_pep);
     
-    const matchDataMap = isDataNoIntervalo(atm.data_mapeamento, filtros.data_map_inicio, filtros.data_map_fim);
-    const matchDataEmi = isDataNoIntervalo(atm.data_emissao, filtros.data_emissao_inicio, filtros.data_emissao_fim);
-    const matchDataVenc = isDataNoIntervalo(atm.vencimento, filtros.data_venc_inicio, filtros.data_venc_fim);
+    let matchDataMap = true;
+    const atmDataMapStr = atm.data_mapeamento ? atm.data_mapeamento.split('T')[0] : null;
+    if (filtros.data_map_especifica) {
+      if (!atmDataMapStr) matchDataMap = false;
+      else matchDataMap = filtros.data_map_especifica.split(',').map(d => d.trim()).includes(atmDataMapStr);
+    } else {
+      matchDataMap = isDataNoIntervalo(atmDataMapStr, filtros.data_map_inicio, filtros.data_map_fim);
+    }
+
+    let matchDataEmi = true;
+    const atmDataEmiStr = atm.data_emissao ? atm.data_emissao.split('T')[0] : null;
+    if (filtros.data_emi_especifica) {
+      if (!atmDataEmiStr) matchDataEmi = false;
+      else matchDataEmi = filtros.data_emi_especifica.split(',').map(d => d.trim()).includes(atmDataEmiStr);
+    } else {
+      matchDataEmi = isDataNoIntervalo(atmDataEmiStr, filtros.data_emissao_inicio, filtros.data_emissao_fim);
+    }
+
+    let matchDataVenc = true;
+    const atmDataVencStr = atm.vencimento ? atm.vencimento.split('T')[0] : null;
+    if (filtros.data_venc_especifica) {
+      if (!atmDataVencStr) matchDataVenc = false;
+      else matchDataVenc = filtros.data_venc_especifica.split(',').map(d => d.trim()).includes(atmDataVencStr);
+    } else {
+      matchDataVenc = isDataNoIntervalo(atmDataVencStr, filtros.data_venc_inicio, filtros.data_venc_fim);
+    }
 
     let matchSap = true;
     if (filtros.registrado_sap) matchSap = (atm.registrado_sap || 'NÃO').toUpperCase() === filtros.registrado_sap;
@@ -160,139 +180,140 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     return 'badge-info';
   };
 
-  const btnFilterStyle = (color) => ({
-    display: 'flex', alignItems: 'center', gap: '6px', 
-    backgroundColor: '#ffffff', border: `1px solid ${color}`, 
-    padding: '4px 10px', borderRadius: '6px', cursor: 'pointer',
-    fontSize: '0.75rem', color: color, fontWeight: 'bold',
-    boxShadow: '0 1px 2px rgba(0,0,0,0.08)', transition: 'all 0.2s'
-  });
-
-  // Função para limpar todos os filtros do bloco Operação
   const limparFiltrosOP = () => {
     setFiltros(prev => ({...prev, id:'', solicitante:'', pedido:'', nf:'', data_inicio:'', data_fim:'', data_especifica:'', status:'', transportadora:''}));
   };
 
-  // Função para limpar todos os filtros do bloco Faturamento
   const limparFiltrosFat = () => {
-    setFiltros(prev => ({...prev, fatura:'', elemento_pep:'', registrado_sap:'', tipo_documento:'', validacao_pep:'', data_map_inicio:'', data_map_fim:'', data_emissao_inicio:'', data_emissao_fim:'', data_venc_inicio:'', data_venc_fim:''}));
+    setFiltros(prev => ({
+      ...prev, fatura:'', elemento_pep:'', registrado_sap:'', tipo_documento:'', validacao_pep:'', 
+      data_map_inicio:'', data_map_fim:'', data_map_especifica: '',
+      data_emissao_inicio:'', data_emissao_fim:'', data_emi_especifica: '',
+      data_venc_inicio:'', data_venc_fim:'', data_venc_especifica: ''
+    }));
   };
 
+  const temFiltroFatAtivo = [
+    filtros.fatura, filtros.elemento_pep, filtros.registrado_sap, filtros.tipo_documento, filtros.validacao_pep, 
+    filtros.data_map_inicio, filtros.data_map_fim, filtros.data_map_especifica, 
+    filtros.data_emissao_inicio, filtros.data_emissao_fim, filtros.data_emi_especifica, 
+    filtros.data_venc_inicio, filtros.data_venc_fim, filtros.data_venc_especifica
+  ].some(v => v !== '' && v !== undefined);
+
   return (
-    <section className="fade-in section-dashboard" style={{ width: '100%', maxWidth: '100%', padding: '20px' }}>
-      <div className="section-header" style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h3 className="section-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <TableList size={28} className="text-primary" /> 
-          Painel de Controle <span style={{color: '#9ca3af', fontSize: '0.9rem', fontWeight: 'normal'}}>(Logística e Faturamento)</span>
-        </h3>
+    <section className="fade-in section-dashboard">
+      <div className="dashboard-header">
         <BtnExcel atmsFiltrados={atmsFiltrados} />
       </div>
 
       <FiltroOP atms={atms} filtros={filtros} onFiltroChange={handleFiltroChange} onLimpar={limparFiltrosOP} aberto={abertoFiltroOp} onClose={() => setAbertoFiltroOp(false)} />
       <FiltroFat atms={atms} filtros={filtros} onFiltroChange={handleFiltroChange} onLimpar={limparFiltrosFat} aberto={abertoFiltroFat} onClose={() => setAbertoFiltroFat(false)} />
       
-      <div ref={topScrollRef} onScroll={handleTopScroll} style={{ position: 'sticky', top: '0', zIndex: 100, backgroundColor: '#f8fafc', overflowX: 'auto', width: '100%', borderBottom: '1px solid #e2e8f0', boxShadow: '0 2px 4px rgba(0,0,0,0.05)', borderRadius: '8px 8px 0 0' }}>
-        <div style={{ width: `${tableWidth}px`, height: '8px' }}></div>
-      </div>
-      
-      <div className="table-container" ref={tableScrollRef} onScroll={handleTableScroll} style={{ overflowX: 'hidden', overflowY: 'auto', maxHeight: '65vh', width: '100%', borderTop: 'none', backgroundColor: 'white', borderRadius: '0 0 8px 8px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-        <table className="data-table" ref={tableContentRef} style={{ whiteSpace: 'nowrap', width: '100%', borderCollapse: 'collapse' }}>
-          
-          <thead style={{ position: 'sticky', top: 0, zIndex: 20, boxShadow: '0 4px 6px -2px rgba(0,0,0,0.1)' }}>
-            <tr style={{ backgroundColor: '#f1f5f9' }}>
-              <th colSpan="9" style={{ borderRight: '2px solid #e2e8f0', color: '#1e3a8a', padding: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
-                  <span style={{ fontWeight: '800', fontSize: '0.85rem', letterSpacing: '0.05em' }}>DADOS DA OPERAÇÃO</span>
-                  <button onClick={() => setAbertoFiltroOp(true)} style={btnFilterStyle('#2563eb')}>
-                    <FilterIcon /> FILTRAR
-                    {(filtros.id || filtros.status || filtros.solicitante || filtros.pedido || filtros.nf || filtros.data_inicio || filtros.data_fim || filtros.data_especifica || filtros.transportadora) && <span style={{width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ef4444'}}></span>}
-                  </button>
-                </div>
-              </th>
-              <th colSpan="8" style={{ color: '#065f46', padding: '12px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '15px' }}>
-                  <span style={{ fontWeight: '800', fontSize: '0.85rem', letterSpacing: '0.05em' }}>FATURAMENTO / SAP</span>
-                  <button onClick={() => setAbertoFiltroFat(true)} style={btnFilterStyle('#059669')}>
-                    <FilterIcon /> FILTRAR
-                    {(filtros.fatura || filtros.elemento_pep || filtros.registrado_sap || filtros.tipo_documento || filtros.validacao_pep || filtros.data_map_inicio || filtros.data_emissao_inicio || filtros.data_venc_inicio) && <span style={{width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#ef4444'}}></span>}
-                  </button>
-                </div>
-              </th>
-              <th style={{ backgroundColor: '#f8fafc' }}></th>
-            </tr>
-            <tr style={{ backgroundColor: '#f8fafc', borderBottom: '2px solid #e2e8f0' }}>
-              <th style={{padding: '12px'}}>ID ATM</th><th>WBS</th><th>Solicitante</th><th>Pedido</th><th>NF</th><th>Rota</th><th>T. Frete</th><th>Veículo</th><th style={{ borderRight: '2px solid #e2e8f0' }}>Status</th>
-              <th>Tipo Doc.</th><th>Data Map.</th><th>Fatura</th><th>Valor (R$)</th><th>Emissão/Venc.</th><th>Elem. PEP</th><th>Valid. PEP</th><th>SAP</th>
-              <th style={{ position: 'sticky', right: 0, backgroundColor: '#f8fafc', zIndex: 30, borderLeft: '1px solid #e2e8f0', textAlign: 'center' }}>Ações</th>
-            </tr>
-          </thead>
-          
-          <tbody>
-            {carregando ? (
-              <tr><td colSpan="18" style={{padding: '40px', textAlign: 'center', color: '#64748b'}}>Carregando dados mestre...</td></tr>
-            ) : atmsExibidos.length === 0 ? (
-              <tr><td colSpan="18" style={{padding: '40px', textAlign: 'center', color: '#64748b'}}>Nenhum resultado encontrado com os filtros atuais.</td></tr>
-            ) : atmsExibidos.map((atm) => (
-              <tr key={atm.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                <td className="font-bold" style={{color: '#1e293b'}}>#{shortId(atm.id)}</td>
-                <td>{atm.wbs || '-'}</td>
-                <td>{atm.solicitacao || '-'}</td>
-                <td>{atm.pedido_compra || '-'}</td>
-                <td>{atm.nf || '-'}</td>
-                <td style={{ fontSize: '0.75rem', lineHeight: '1.2' }}>
-                  <span style={{color: '#64748b'}}>De:</span> {atm.origem?.municipio}<br/>
-                  <span style={{color: '#64748b'}}>Para:</span> {atm.destino?.municipio}
-                </td>
-                <td><small>{atm.tipo_frete || '-'}</small></td>
-                <td>{atm.veiculo || '-'}</td>
-                <td style={{ borderRight: '2px solid #f1f5f9' }}>
-                  <span className={`badge ${getStatusClass(atm.status)}`} style={{fontSize: '0.7rem'}}>{atm.status}</span>
-                </td>
-                <td>{atm.tipo_documento || '-'}</td>
-                <td><small>{formatarDataCurta(atm.data_mapeamento)}</small></td>
-                <td className="font-bold" style={{color: '#475569'}}>{atm.fatura_cte || '-'}</td>
-                <td style={{color: '#059669', fontWeight: 'bold'}}>
-                  {(atm.valor || atm.valor_nf) ? Number(atm.valor || atm.valor_nf).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : '-'}
-                </td>
-                <td style={{ fontSize: '0.75rem' }}>
-                  {formatarDataCurta(atm.data_emissao)}<br/>
-                  <strong style={{color: '#dc2626'}}>{formatarDataCurta(atm.vencimento)}</strong>
-                </td>
-                <td><small>{atm.elemento_pep_cc_wbs || atm.wbs || '-'}</small></td>
-                <td>{atm.validacao_pep || '-'}</td>
-                <td style={{textAlign: 'center'}}>
-                  <span style={{color: atm.registrado_sap === 'SIM' ? '#059669' : '#94a3b8', fontWeight: 'bold'}}>
-                    {atm.registrado_sap || 'NÃO'}
-                  </span>
-                </td>
-                <td style={{ position: 'sticky', right: 0, backgroundColor: 'white', borderLeft: '1px solid #e2e8f0', textAlign: 'center', padding: '8px', zIndex: 5 }}>
-                  <button className="btn-action" onClick={() => onOpenAtm(atm)} style={{padding: '6px 12px', fontSize: '0.8rem'}}>
-                    <FolderOpen size={14} /> Abrir
-                  </button>
-                </td>
+      <div className="table-main-wrapper">
+        
+        <div ref={topScrollRef} onScroll={handleTopScroll} className="top-scroll-wrapper">
+          <div style={{ width: `${tableWidth}px`, height: '8px' }}></div>
+        </div>
+        
+        <div className="table-scroll-container" ref={tableScrollRef} onScroll={handleTableScroll}>
+          <table className="dashboard-table" ref={tableContentRef}>
+            
+            <thead className="sticky-thead">
+              <tr>
+                <th colSpan="9" className="th-group-op">
+                  <div className="th-group-content">
+                    <span className="th-group-title">DADOS DA OPERAÇÃO</span>
+                    <button onClick={() => setAbertoFiltroOp(true)} className="btn-filter-custom btn-filter-op">
+                      <FilterIcon /> FILTRAR
+                      {(filtros.id || filtros.status || filtros.solicitante || filtros.pedido || filtros.nf || filtros.data_inicio || filtros.data_fim || filtros.data_especifica || filtros.transportadora) && <span className="filter-indicator"></span>}
+                    </button>
+                  </div>
+                </th>
+                <th colSpan="8" className="th-group-fat">
+                  <div className="th-group-content">
+                    <span className="th-group-title">FATURAMENTO / SAP</span>
+                    <button onClick={() => setAbertoFiltroFat(true)} className="btn-filter-custom btn-filter-fat">
+                      <FilterIcon /> FILTRAR
+                      {temFiltroFatAtivo && <span className="filter-indicator"></span>}
+                    </button>
+                  </div>
+                </th>
+                <th style={{ backgroundColor: '#f8fafc' }}></th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+              <tr className="tr-subheader">
+                <th>ID ATM</th><th>WBS</th><th>Solicitante</th><th>Pedido</th><th>NF</th><th>Rota</th><th>T. Frete</th><th>Veículo</th><th style={{ borderRight: '2px solid #e2e8f0' }}>Status</th>
+                <th>Tipo Doc.</th><th>Data Map.</th><th>Fatura</th><th>Valor (R$)</th><th>Emissão/Venc.</th><th>Elem. PEP</th><th>Valid. PEP</th><th>SAP</th>
+                <th className="th-sticky-action">Ações</th>
+              </tr>
+            </thead>
+            
+            <tbody>
+              {carregando ? (
+                <tr><td colSpan="18" className="td-empty-state">Carregando dados mestre...</td></tr>
+              ) : atmsExibidos.length === 0 ? (
+                <tr><td colSpan="18" className="td-empty-state">Nenhum resultado encontrado com os filtros atuais.</td></tr>
+              ) : atmsExibidos.map((atm) => (
+                <tr key={atm.id} className="tr-data">
+                  <td className="td-id">#{shortId(atm.id)}</td>
+                  <td>{atm.wbs || '-'}</td>
+                  <td>{atm.solicitacao || '-'}</td>
+                  <td>{atm.pedido_compra || '-'}</td>
+                  <td>{atm.nf || '-'}</td>
+                  <td className="td-route">
+                    <span>De:</span> {atm.origem?.municipio}<br/>
+                    <span>Para:</span> {atm.destino?.municipio}
+                  </td>
+                  <td><small>{atm.tipo_frete || '-'}</small></td>
+                  <td>{atm.veiculo || '-'}</td>
+                  <td style={{ borderRight: '2px solid #f1f5f9' }}>
+                    <span className={`badge ${getStatusClass(atm.status)}`} style={{fontSize: '0.7rem'}}>{atm.status}</span>
+                  </td>
+                  <td>{atm.tipo_documento || '-'}</td>
+                  <td><small>{formatarDataCurta(atm.data_mapeamento)}</small></td>
+                  <td className="td-fatura">{atm.fatura_cte || '-'}</td>
+                  <td className="td-valor">
+                    {(atm.valor || atm.valor_nf) ? Number(atm.valor || atm.valor_nf).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'}) : '-'}
+                  </td>
+                  <td className="td-dates">
+                    {formatarDataCurta(atm.data_emissao)}<br/>
+                    <strong className="td-vencimento">{formatarDataCurta(atm.vencimento)}</strong>
+                  </td>
+                  <td><small>{atm.elemento_pep_cc_wbs || atm.wbs || '-'}</small></td>
+                  <td>{atm.validacao_pep || '-'}</td>
+                  <td style={{textAlign: 'center'}}>
+                    <span style={{color: atm.registrado_sap === 'SIM' ? '#059669' : '#94a3b8', fontWeight: 'bold'}}>
+                      {atm.registrado_sap || 'NÃO'}
+                    </span>
+                  </td>
+                  <td className="td-sticky-action">
+                    <button className="btn-action" onClick={() => onOpenAtm(atm)} style={{padding: '6px 12px', fontSize: '0.8rem'}}>
+                      <FolderOpen size={14} /> Abrir
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
 
         {!carregando && totalPaginas > 1 && (
-          <div style={{ position: 'sticky', bottom: 0, display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 20px', backgroundColor: '#f8fafc', borderTop: '1px solid #e2e8f0', zIndex: 20 }}>
-            <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+          <div className="pagination-wrapper">
+            <span className="pagination-info">
               Mostrando <strong>{atmsExibidos.length}</strong> de <strong>{atmsFiltrados.length}</strong> pedidos filtrados
             </span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div className="pagination-controls">
               <button 
                 onClick={() => setPaginaAtual(p => Math.max(p-1, 1))} 
                 disabled={paginaAtual === 1}
-                style={{ padding: '5px 12px', borderRadius: '4px', border: '1px solid #e2e8f0', backgroundColor: paginaAtual === 1 ? '#f1f5f9' : 'white', cursor: paginaAtual === 1 ? 'not-allowed' : 'pointer' }}
+                className="pagination-btn"
               >
                 Anterior
               </button>
-              <span style={{ fontSize: '0.85rem', fontWeight: 'bold' }}>Página {paginaAtual} / {totalPaginas}</span>
+              <span className="pagination-page-text">Página {paginaAtual} / {totalPaginas}</span>
               <button 
                 onClick={() => setPaginaAtual(p => Math.min(p+1, totalPaginas))} 
                 disabled={paginaAtual === totalPaginas}
-                style={{ padding: '5px 12px', borderRadius: '4px', border: '1px solid #e2e8f0', backgroundColor: paginaAtual === totalPaginas ? '#f1f5f9' : 'white', cursor: paginaAtual === totalPaginas ? 'not-allowed' : 'pointer' }}
+                className="pagination-btn"
               >
                 Próxima
               </button>

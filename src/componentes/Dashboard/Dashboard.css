@@ -1,0 +1,256 @@
+/* src/componentes/Dashboard/Dashboard.css */
+
+.section-dashboard {
+  width: 100%;
+  max-width: 100%;
+  padding: 20px;
+}
+
+.dashboard-header {
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dashboard-title {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-title-sub {
+  color: #9ca3af;
+  font-size: 0.9rem;
+  font-weight: normal;
+}
+
+/* Wrapper Geral da Tabela */
+.table-main-wrapper {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+}
+
+/* Scroll Fixo no Topo */
+.top-scroll-wrapper {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background-color: #f8fafc;
+  overflow-x: auto;
+  width: 100%;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 8px 8px 0 0;
+}
+
+/* Container de Scroll da Tabela */
+.table-scroll-container {
+  overflow-x: hidden;
+  overflow-y: auto;
+  max-height: 60vh;
+  width: 100%;
+  border-top: none;
+}
+
+/* Tabela Principal */
+.dashboard-table {
+  white-space: nowrap;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* Cabeçalho Congelado */
+.sticky-thead {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  box-shadow: 0 4px 6px -2px rgba(0,0,0,0.1);
+}
+
+/* Células de Cabeçalho Superiores (Operação / Faturamento) */
+.th-group-op {
+  border-right: 2px solid #e2e8f0;
+  color: #1e3a8a;
+  padding: 12px;
+  background-color: #f1f5f9;
+}
+
+.th-group-fat {
+  color: #065f46;
+  padding: 12px;
+  background-color: #f1f5f9;
+}
+
+.th-group-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+}
+
+.th-group-title {
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+/* Botões de Filtro no Cabeçalho */
+.btn-filter-custom {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #ffffff;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: bold;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  transition: all 0.2s;
+}
+
+.btn-filter-op {
+  border: 1px solid #2563eb;
+  color: #2563eb;
+}
+
+.btn-filter-fat {
+  border: 1px solid #059669;
+  color: #059669;
+}
+
+.filter-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ef4444;
+}
+
+/* Sub-cabeçalhos (Nomes das Colunas) */
+.tr-subheader {
+  background-color: #f8fafc;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+.tr-subheader th {
+  padding: 12px;
+  text-align: left;
+}
+
+/* Células e Linhas de Dados */
+.tr-data {
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.tr-data td {
+  padding: 8px 12px;
+}
+
+.td-id {
+  font-weight: bold;
+  color: #1e293b;
+}
+
+.td-route {
+  font-size: 0.75rem;
+  line-height: 1.2;
+}
+
+.td-route span {
+  color: #64748b;
+}
+
+.td-fatura {
+  font-weight: bold;
+  color: #475569;
+}
+
+.td-valor {
+  color: #059669;
+  font-weight: bold;
+}
+
+.td-dates {
+  font-size: 0.75rem;
+}
+
+.td-vencimento {
+  color: #dc2626;
+}
+
+/* Coluna de Ações Fixa à Direita */
+.th-sticky-action {
+  position: sticky;
+  right: 0;
+  background-color: #f8fafc;
+  z-index: 30;
+  border-left: 1px solid #e2e8f0;
+  text-align: center;
+}
+
+.td-sticky-action {
+  position: sticky;
+  right: 0;
+  background-color: white;
+  border-left: 1px solid #e2e8f0;
+  text-align: center;
+  padding: 8px;
+  z-index: 5;
+}
+
+/* Mensagens de Carregamento/Vazio */
+.td-empty-state {
+  padding: 40px;
+  text-align: center;
+  color: #64748b;
+}
+
+/* Paginação (Rodapé Fixo) */
+.pagination-wrapper {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 20px;
+  background-color: #f8fafc;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0 0 8px 8px;
+  z-index: 20;
+}
+
+.pagination-info {
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.pagination-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.pagination-btn {
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid #e2e8f0;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.pagination-btn:not(:disabled) {
+  background-color: white;
+}
+
+.pagination-btn:disabled {
+  background-color: #f1f5f9;
+  cursor: not-allowed;
+  color: #94a3b8;
+}
+
+.pagination-page-text {
+  font-size: 0.85rem;
+  font-weight: bold;
+}
