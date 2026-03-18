@@ -24,9 +24,9 @@ export default function BtnExcel({ atmsFiltrados }) {
       const worksheet = workbook.addWorksheet('ATM');
 
       // Títulos superiores
-      worksheet.getCell('AA1').value = 'Controle de Ctes/ Nfe de Serviço';
-      worksheet.getCell('AA1').font = { bold: true, size: 14 };
-      worksheet.getCell('AA1').alignment = { horizontal: 'center' };
+      worksheet.getCell('Z1').value = 'Controle de Ctes/ Nfe de Serviço';
+      worksheet.getCell('Z1').font = { bold: true, size: 14 };
+      worksheet.getCell('Z1').alignment = { horizontal: 'center' };
       
       worksheet.getCell('D2').value = 'Gestão de Fretes';
       worksheet.getCell('D2').font = { bold: true, size: 16 };
@@ -56,7 +56,8 @@ export default function BtnExcel({ atmsFiltrados }) {
         { key: 'valor_previsto', width: 22 },
         { key: 'status', width: 15 },
         { key: 'obs', width: 35 },
-        { key: 'separador_preto', width: 3 }, // 👈 Coluna separadora
+        // 👇 COLUNA SEPARADORA PRETA AQUI 👇
+        { key: 'separador_preto', width: 3 }, 
         { key: 'tipo_doc', width: 15 },
         { key: 'data_map', width: 18 },
         { key: 'fatura', width: 15 },
@@ -75,7 +76,8 @@ export default function BtnExcel({ atmsFiltrados }) {
         "DATA DA SOLICITAÇÃO", "ATM", "PEDIDO DE COMPRA", "NF", "WBS", "UF", "MUNICIPIO", "LOCAL DE COLETA", "X", 
         "LOCAL DA ENTREGA", "UF 2", "MUNICIPIO 2", "Fracionado/Dedicado", "SOLICITAÇÃO", "VEÍCULO", "TRANSPORTADORA", 
         "COTAÇÃO/BID", "VALOR NF", "VOLUME", "PESO", "Valor previsto do frete", "STATUS", "OBSERVAÇÕES", 
-        "", "TIPO", "DATA MAPEAMENTO", "FATURA", "VALOR", "DATA EMISSÃO", "VENCIMENTO", "ELEMENTO PEP - CC / WBS", 
+        "", // Título vazio para a coluna preta
+        "TIPO", "DATA MAPEAMENTO", "FATURA", "VALOR", "DATA EMISSÃO", "VENCIMENTO", "ELEMENTO PEP - CC / WBS", 
         "VALIDAÇÃO PEP - CC /WBS", "Lançamento V360", "Id V360", "Registrado SAP (S/N)"
       ];
 
@@ -83,7 +85,7 @@ export default function BtnExcel({ atmsFiltrados }) {
       linhaCabecalho.values = titulos;
 
       linhaCabecalho.eachCell((cell, colNumber) => {
-        // Verifica se é a coluna do separador (neste caso, a coluna 24)
+        // Verifica se é a coluna do separador (agora é a coluna 24)
         if (worksheet.getColumn(colNumber).key === 'separador_preto') {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
         } else {
