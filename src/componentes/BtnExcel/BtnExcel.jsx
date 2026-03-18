@@ -23,6 +23,7 @@ export default function BtnExcel({ atmsFiltrados }) {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet('ATM');
 
+      // Títulos superiores
       worksheet.getCell('AA1').value = 'Controle de Ctes/ Nfe de Serviço';
       worksheet.getCell('AA1').font = { bold: true, size: 14 };
       worksheet.getCell('AA1').alignment = { horizontal: 'center' };
@@ -30,6 +31,7 @@ export default function BtnExcel({ atmsFiltrados }) {
       worksheet.getCell('D2').value = 'Gestão de Fretes';
       worksheet.getCell('D2').font = { bold: true, size: 16 };
 
+      // Configuração das Colunas (Removido col1 e col_2)
       worksheet.columns = [
         { key: 'data_sol', width: 22 },           // 1
         { key: 'atm', width: 12 },                // 2
@@ -52,28 +54,27 @@ export default function BtnExcel({ atmsFiltrados }) {
         { key: 'volume', width: 12 },             // 19
         { key: 'peso', width: 12 },               // 20
         { key: 'valor_previsto', width: 22 },     // 21
-        { key: 'col1', width: 12 },               // 22
-        { key: 'status', width: 15 },             // 23
-        { key: 'obs', width: 35 },                // 24
-        { key: 'col_2', width: 10 },              // 25
-        { key: 'tipo_doc', width: 15 },           // 26
-        { key: 'data_map', width: 18 },           // 27
-        { key: 'fatura', width: 15 },             // 28
-        { key: 'valor', width: 15 },              // 29
-        { key: 'data_emissao', width: 15 },       // 30
-        { key: 'vencimento', width: 15 },         // 31
-        { key: 'elemento_pep', width: 25 },       // 32
-        { key: 'validacao_pep', width: 25 },      // 33
-        { key: 'lancamento_v360', width: 20 },    // 34
-        { key: 'id_v360', width: 15 },            // 35
-        { key: 'registrado_sap', width: 22 }      // 36
+        { key: 'status', width: 15 },             // 22 (subiu)
+        { key: 'obs', width: 35 },                // 23 (subiu)
+        { key: 'tipo_doc', width: 15 },           // 24
+        { key: 'data_map', width: 18 },           // 25
+        { key: 'fatura', width: 15 },             // 26
+        { key: 'valor', width: 15 },              // 27
+        { key: 'data_emissao', width: 15 },       // 28
+        { key: 'vencimento', width: 15 },         // 29
+        { key: 'elemento_pep', width: 25 },       // 30
+        { key: 'validacao_pep', width: 25 },      // 31
+        { key: 'lancamento_v360', width: 20 },    // 32
+        { key: 'id_v360', width: 15 },            // 33
+        { key: 'registrado_sap', width: 22 }      // 34
       ];
 
+      // Títulos do Cabeçalho (Removido "Column1" e "Coluna 2")
       const titulos = [
         "DATA DA SOLICITAÇÃO", "ATM", "PEDIDO DE COMPRA", "NF", "WBS", "UF", "MUNICIPIO", "LOCAL DE COLETA", "X", 
         "LOCAL DA ENTREGA", "UF 2", "MUNICIPIO 2", "Fracionado/Dedicado", "SOLICITAÇÃO", "VEÍCULO", "TRANSPORTADORA", 
-        "COTAÇÃO/BID", "VALOR NF", "VOLUME", "PESO", "Valor previsto do frete", "Column1", "STATUS", "OBSERVAÇÕES", 
-        "Coluna 2", "TIPO", "DATA MAPEAMENTO", "FATURA", "VALOR", "DATA EMISSÃO", "VENCIMENTO", "ELEMENTO PEP - CC / WBS", 
+        "COTAÇÃO/BID", "VALOR NF", "VOLUME", "PESO", "Valor previsto do frete", "STATUS", "OBSERVAÇÕES", 
+        "TIPO", "DATA MAPEAMENTO", "FATURA", "VALOR", "DATA EMISSÃO", "VENCIMENTO", "ELEMENTO PEP - CC / WBS", 
         "VALIDAÇÃO PEP - CC /WBS", "Lançamento V360", "Id V360", "Registrado SAP (S/N)"
       ];
 
@@ -88,6 +89,7 @@ export default function BtnExcel({ atmsFiltrados }) {
       });
       linhaCabecalho.height = 35;
 
+      // Inserção dos dados (Removido col1 e col_2)
       atmsFiltrados.forEach(atm => {
         const row = worksheet.addRow({
           data_sol: atm.data_solicitacao ? atm.data_solicitacao.split('T')[0] : '-',
@@ -111,10 +113,8 @@ export default function BtnExcel({ atmsFiltrados }) {
           volume: atm.volume || '',
           peso: atm.peso || '',
           valor_previsto: atm.valor_bid_dedicado || '',
-          col1: '', 
           status: atm.status || '-',
           obs: atm.observacoes || '-',
-          col_2: '', 
           tipo_doc: atm.tipo_documento || '-',
           data_map: atm.data_mapeamento ? atm.data_mapeamento.split('T')[0] : '-',
           fatura: atm.fatura_cte || '-',
