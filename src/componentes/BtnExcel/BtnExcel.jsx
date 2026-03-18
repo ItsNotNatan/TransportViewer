@@ -31,65 +31,71 @@ export default function BtnExcel({ atmsFiltrados }) {
       worksheet.getCell('D2').value = 'Gestão de Fretes';
       worksheet.getCell('D2').font = { bold: true, size: 16 };
 
-      // Configuração das Colunas (Removido col1 e col_2)
+      // Configuração das Colunas
       worksheet.columns = [
-        { key: 'data_sol', width: 22 },           // 1
-        { key: 'atm', width: 12 },                // 2
-        { key: 'pedido', width: 20 },             // 3
-        { key: 'nf', width: 15 },                 // 4
-        { key: 'wbs', width: 15 },                // 5
-        { key: 'uf1', width: 6 },                 // 6
-        { key: 'mun1', width: 20 },               // 7
-        { key: 'coleta', width: 30 },             // 8
-        { key: 'x', width: 4 },                   // 9
-        { key: 'entrega', width: 30 },            // 10
-        { key: 'uf2', width: 6 },                 // 11
-        { key: 'mun2', width: 20 },               // 12
-        { key: 'tipo_frete', width: 22 },         // 13
-        { key: 'solicitacao', width: 20 },        // 14
-        { key: 'veiculo', width: 20 },            // 15
-        { key: 'transportadora', width: 25 },     // 16
-        { key: 'cotacao', width: 15 },            // 17
-        { key: 'valor_nf', width: 15 },           // 18
-        { key: 'volume', width: 12 },             // 19
-        { key: 'peso', width: 12 },               // 20
-        { key: 'valor_previsto', width: 22 },     // 21
-        { key: 'status', width: 15 },             // 22 (subiu)
-        { key: 'obs', width: 35 },                // 23 (subiu)
-        { key: 'tipo_doc', width: 15 },           // 24
-        { key: 'data_map', width: 18 },           // 25
-        { key: 'fatura', width: 15 },             // 26
-        { key: 'valor', width: 15 },              // 27
-        { key: 'data_emissao', width: 15 },       // 28
-        { key: 'vencimento', width: 15 },         // 29
-        { key: 'elemento_pep', width: 25 },       // 30
-        { key: 'validacao_pep', width: 25 },      // 31
-        { key: 'lancamento_v360', width: 20 },    // 32
-        { key: 'id_v360', width: 15 },            // 33
-        { key: 'registrado_sap', width: 22 }      // 34
+        { key: 'data_sol', width: 22 },
+        { key: 'atm', width: 12 },
+        { key: 'pedido', width: 20 },
+        { key: 'nf', width: 15 },
+        { key: 'wbs', width: 15 },
+        { key: 'uf1', width: 6 },
+        { key: 'mun1', width: 20 },
+        { key: 'coleta', width: 30 },
+        { key: 'x', width: 4 },
+        { key: 'entrega', width: 30 },
+        { key: 'uf2', width: 6 },
+        { key: 'mun2', width: 20 },
+        { key: 'tipo_frete', width: 22 },
+        { key: 'solicitacao', width: 20 },
+        { key: 'veiculo', width: 20 },
+        { key: 'transportadora', width: 25 },
+        { key: 'cotacao', width: 15 },
+        { key: 'valor_nf', width: 15 },
+        { key: 'volume', width: 12 },
+        { key: 'peso', width: 12 },
+        { key: 'valor_previsto', width: 22 },
+        { key: 'status', width: 15 },
+        { key: 'obs', width: 35 },
+        { key: 'separador_preto', width: 3 }, // 👈 Coluna separadora
+        { key: 'tipo_doc', width: 15 },
+        { key: 'data_map', width: 18 },
+        { key: 'fatura', width: 15 },
+        { key: 'valor', width: 15 },
+        { key: 'data_emissao', width: 15 },
+        { key: 'vencimento', width: 15 },
+        { key: 'elemento_pep', width: 25 },
+        { key: 'validacao_pep', width: 25 },
+        { key: 'lancamento_v360', width: 20 },
+        { key: 'id_v360', width: 15 },
+        { key: 'registrado_sap', width: 22 }
       ];
 
-      // Títulos do Cabeçalho (Removido "Column1" e "Coluna 2")
+      // Títulos do Cabeçalho
       const titulos = [
         "DATA DA SOLICITAÇÃO", "ATM", "PEDIDO DE COMPRA", "NF", "WBS", "UF", "MUNICIPIO", "LOCAL DE COLETA", "X", 
         "LOCAL DA ENTREGA", "UF 2", "MUNICIPIO 2", "Fracionado/Dedicado", "SOLICITAÇÃO", "VEÍCULO", "TRANSPORTADORA", 
         "COTAÇÃO/BID", "VALOR NF", "VOLUME", "PESO", "Valor previsto do frete", "STATUS", "OBSERVAÇÕES", 
-        "TIPO", "DATA MAPEAMENTO", "FATURA", "VALOR", "DATA EMISSÃO", "VENCIMENTO", "ELEMENTO PEP - CC / WBS", 
+        "", "TIPO", "DATA MAPEAMENTO", "FATURA", "VALOR", "DATA EMISSÃO", "VENCIMENTO", "ELEMENTO PEP - CC / WBS", 
         "VALIDAÇÃO PEP - CC /WBS", "Lançamento V360", "Id V360", "Registrado SAP (S/N)"
       ];
 
       const linhaCabecalho = worksheet.getRow(4);
       linhaCabecalho.values = titulos;
 
-      linhaCabecalho.eachCell((cell) => {
-        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A8A' } };
-        cell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; 
+      linhaCabecalho.eachCell((cell, colNumber) => {
+        // Verifica se é a coluna do separador (neste caso, a coluna 24)
+        if (worksheet.getColumn(colNumber).key === 'separador_preto') {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
+        } else {
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A8A' } };
+          cell.font = { color: { argb: 'FFFFFFFF' }, bold: true }; 
+        }
         cell.border = { top: { style: 'thin' }, left: { style: 'thin' }, bottom: { style: 'thin' }, right: { style: 'thin' } };
         cell.alignment = { vertical: 'middle', horizontal: 'center', wrapText: true };
       });
       linhaCabecalho.height = 35;
 
-      // Inserção dos dados (Removido col1 e col_2)
+      // Inserção dos dados
       atmsFiltrados.forEach(atm => {
         const row = worksheet.addRow({
           data_sol: atm.data_solicitacao ? atm.data_solicitacao.split('T')[0] : '-',
@@ -115,6 +121,7 @@ export default function BtnExcel({ atmsFiltrados }) {
           valor_previsto: atm.valor_bid_dedicado || '',
           status: atm.status || '-',
           obs: atm.observacoes || '-',
+          separador_preto: '', // Valor vazio para a coluna preta
           tipo_doc: atm.tipo_documento || '-',
           data_map: atm.data_mapeamento ? atm.data_mapeamento.split('T')[0] : '-',
           fatura: atm.fatura_cte || '-',
@@ -128,9 +135,14 @@ export default function BtnExcel({ atmsFiltrados }) {
           registrado_sap: atm.registrado_sap || '-'
         });
 
-        row.eachCell((cell) => {
-          cell.alignment = { vertical: 'middle', horizontal: 'center' };
-          cell.border = { top: { style: 'thin', color: { argb: 'FFE5E7EB' } }, bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } } };
+        row.eachCell((cell, colNumber) => {
+          // Pinta a célula de preto se for a coluna separadora
+          if (worksheet.getColumn(colNumber).key === 'separador_preto') {
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
+          } else {
+            cell.alignment = { vertical: 'middle', horizontal: 'center' };
+            cell.border = { top: { style: 'thin', color: { argb: 'FFE5E7EB' } }, bottom: { style: 'thin', color: { argb: 'FFE5E7EB' } } };
+          }
         });
       });
 
