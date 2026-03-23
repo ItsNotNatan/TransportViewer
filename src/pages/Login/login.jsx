@@ -1,3 +1,4 @@
+// src/pages/login/login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './login.css';
@@ -29,7 +30,7 @@ export default function Login() {
         body: JSON.stringify({ email, senha })
       });
 
-      // Validação de segurança para evitar o erro do "<!DOCTYPE" (HTML em vez de JSON)
+      // Validação para evitar erro caso o backend devolva HTML em vez de JSON
       const isJson = response.headers.get('content-type')?.includes('application/json');
       if (!isJson) {
         setErroValidacao('Erro no servidor. Verifique se o backend está a rodar.');
@@ -37,17 +38,21 @@ export default function Login() {
         return;
       }
 
+      // Extrai os dados que o Backend enviou (Incluindo o Token)
       const data = await response.json();
 
       if (response.ok) {
-        // Se o login for aprovado, guarda as informações no navegador
+        // 👇 A MÁGICA DA SEGURANÇA ACONTECE AQUI 👇
+        // Guarda a pulseira VIP (Token) e os dados do usuário no navegador
+        localStorage.setItem('token', data.token); // <--- CRUCIAL PARA AS ROTAS PRIVADAS
         localStorage.setItem('userName', data.nome);
         localStorage.setItem('userPerfil', data.perfil);
+        // 👆 ====================================== 👆
         
-        // Redireciona para o Dashboard (que está na rota "/")
+        // Redireciona para o Dashboard Admin (que está na rota "/")
         navigate('/'); 
       } else {
-        // Se a senha estiver errada, mostra a mensagem vinda do banco de dados
+        // Se a senha estiver errada, mostra a mensagem vinda do backend
         setErroValidacao(data.mensagem || 'E-mail ou palavra-passe incorretos.');
       }
     } catch (error) {
@@ -103,7 +108,7 @@ export default function Login() {
               </div>
             </div>
 
-            {/* MENSAGEM DE ERRO (Só aparece se houver erro) */}
+            {/* MENSAGEM DE ERRO */}
             {erroValidacao && (
               <div style={{ color: '#ef4444', fontSize: '0.85rem', textAlign: 'center', marginTop: '0.5rem', fontWeight: 'bold' }}>
                 {erroValidacao}

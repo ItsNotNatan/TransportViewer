@@ -1,3 +1,4 @@
+// src/routes.jsx
 import React from 'react';
 import { createBrowserRouter, Navigate } from 'react-router-dom';
 
@@ -7,29 +8,29 @@ import AdminDashboard from './pages/AdminDashboard/AdminDashboard';
 import Layout from './componentes/layout/layout';
 
 // ======================================================
-// COMPONENTE DE PROTEÇÃO (O "Segurança da Porta")
+// COMPONENTE DE PROTEÇÃO MELHORADO (O "Segurança Blindado")
 // ======================================================
 const RotaPrivada = ({ children }) => {
-  // Verifica se existe alguém logado (se salvamos o nome no login)
-  const usuarioLogado = localStorage.getItem('userName');
+  // 🔴 ANTES: const usuarioLogado = localStorage.getItem('userName');
+  // 🟢 AGORA: Verificamos o Token de segurança
+  const token = localStorage.getItem('token'); 
   
-  if (!usuarioLogado) {
-    // Se NÃO estiver logado, redireciona para a tela de login imediatamente
+  if (!token) {
+    // Se não tem token, chuta pro login
     return <Navigate to="/login" replace />;
   }
   
-  // Se ESTIVER logado, deixa a pessoa entrar na tela que ela pediu
+  // Se tem token, deixa entrar!
   return children;
 };
 
 // ======================================================
-// CONFIGURAÇÃO DAS ROTAS
+// CONFIGURAÇÃO DAS ROTAS (Fica igual!)
 // ======================================================
 export const router = createBrowserRouter([
   {
     path: "/",
-    // Envolvemos o Layout (que tem o Menu e o Header) com a Rota Privada!
-    // Assim, todas as rotas filhas ficam protegidas automaticamente.
+    // O Layout continua protegido pela RotaPrivada
     element: (
       <RotaPrivada>
         <Layout />
@@ -51,4 +52,3 @@ export const router = createBrowserRouter([
     element: <Login />, 
   }
 ]);
-
