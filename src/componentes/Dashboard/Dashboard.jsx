@@ -7,7 +7,8 @@ import './Dashboard.css';
 // --- Ícones (Mantidos) ---
 const TableList = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/></svg>;
 const FolderOpen = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>;
-const FilterIcon = () => <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>;
+const ChevronLeft = ({ size = 18 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>;
+const ChevronRight = ({ size = 18 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>;
 
 export default function Dashboard({ atms, carregando, onOpenAtm }) {
   const [filtros, setFiltros] = useState({ 
@@ -24,15 +25,9 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
   const itensPorPagina = 20;
 
   const tableContentRef = useRef(null);
-  const [tableWidth, setTableWidth] = useState(0);
 
+  // Reseta para a página 1 sempre que um filtro novo for aplicado
   useEffect(() => { setPaginaAtual(1); }, [filtros]);
-
-  useEffect(() => {
-    if (tableContentRef.current) {
-      setTableWidth(tableContentRef.current.scrollWidth);
-    }
-  }, [atms, filtros, paginaAtual]);
 
   const handleFiltroChange = (e) => {
     const { name, value } = e.target;
@@ -74,10 +69,9 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
   };
 
   // ==========================================
-  // LÓGICA DE FILTRAGEM (CORRIGIDA PARA JOIN)
+  // LÓGICA DE FILTRAGEM
   // ==========================================
   const atmsFiltrados = atms.filter(atm => {
-    // 🟢 Dados da Operação (Tabela Principal)
     const matchId = matchFiltroComIntervalo(atm.numero_atm || shortId(atm.id), filtros.id);
     const matchPedido = matchFiltroComIntervalo(atm.pedido_compra, filtros.pedido);
     const matchNf = matchFiltroComIntervalo(atm.nf, filtros.nf);
@@ -85,7 +79,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     const matchStatus = matchMultiSelect(atm.status, filtros.status);
     const matchTransportadora = matchMultiSelect(atm.transportadora?.nome, filtros.transportadora);
     
-    // 🟢 Dados de Faturamento (Vem do objeto 'faturamento')
     const fat = atm.faturamento || {}; 
     const matchFatura = matchFiltroComIntervalo(fat.fatura_cte, filtros.fatura);
     const matchPep = matchFiltroComIntervalo(fat.elemento_pep_cc_wbs || atm.wbs, filtros.elemento_pep);
@@ -93,10 +86,7 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     const matchValidPep = matchMultiSelect(fat.validacao_pep, filtros.validacao_pep);
     const matchSap = filtros.registrado_sap ? (fat.registrado_sap || 'NÃO') === filtros.registrado_sap : true;
 
-    // Filtros de Data (Operação)
     const matchDataOp = isDataNoIntervalo(atm.data_solicitacao, filtros.data_inicio, filtros.data_fim);
-    
-    // Filtros de Data (Faturamento)
     const matchDataMap = isDataNoIntervalo(fat.data_mapeamento, filtros.data_map_inicio, filtros.data_map_fim);
     const matchDataEmi = isDataNoIntervalo(fat.data_emissao, filtros.data_emissao_inicio, filtros.data_emissao_fim);
     const matchDataVenc = isDataNoIntervalo(fat.vencimento, filtros.data_venc_inicio, filtros.data_venc_fim);
@@ -111,8 +101,17 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     return 'badge-info';
   };
 
+  // Lógica de Paginação
   const totalPaginas = Math.ceil(atmsFiltrados.length / itensPorPagina);
   const atmsExibidos = atmsFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
+
+  const irParaPaginaAnterior = () => {
+    if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1);
+  };
+
+  const irParaProximaPagina = () => {
+    if (paginaAtual < totalPaginas) setPaginaAtual(paginaAtual + 1);
+  };
 
   return (
     <section className="fade-in section-dashboard">
@@ -191,6 +190,34 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
             </tbody>
           </table>
         </div>
+
+        {/* 👇 O RODAPÉ DE PAGINAÇÃO VOLTOU AQUI 👇 */}
+        {!carregando && atmsFiltrados.length > 0 && (
+          <div className="pagination-wrapper">
+            <div className="pagination-info">
+              Mostrando <strong>{((paginaAtual - 1) * itensPorPagina) + 1}</strong> até <strong>{Math.min(paginaAtual * itensPorPagina, atmsFiltrados.length)}</strong> de <strong>{atmsFiltrados.length}</strong> registros
+            </div>
+            <div className="pagination-controls">
+              <button 
+                className="pagination-btn" 
+                onClick={irParaPaginaAnterior} 
+                disabled={paginaAtual === 1}
+              >
+                <ChevronLeft /> Anterior
+              </button>
+              <span className="pagination-page-text">Página {paginaAtual} de {totalPaginas}</span>
+              <button 
+                className="pagination-btn" 
+                onClick={irParaProximaPagina} 
+                disabled={paginaAtual === totalPaginas}
+              >
+                Próxima <ChevronRight />
+              </button>
+            </div>
+          </div>
+        )}
+        {/* 👆 FIM DA PAGINAÇÃO 👆 */}
+        
       </div>
     </section>
   );

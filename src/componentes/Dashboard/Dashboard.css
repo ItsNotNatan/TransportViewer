@@ -45,13 +45,30 @@
   border-radius: 8px 8px 0 0;
 }
 
-/* Container de Scroll da Tabela */
+/* 1. Altere o container de scroll */
 .table-scroll-container {
-  overflow-x: hidden;
+  overflow-x: auto; /* 🟢 MUDOU DE hidden PARA auto */
   overflow-y: auto;
-  max-height: 60vh;
+  max-height: 65vh; 
   width: 100%;
   border-top: none;
+  position: relative; /* Ajuda no alinhamento do sticky header */
+}
+
+/* 2. Forçar a largura da tabela */
+.dashboard-table {
+  white-space: nowrap;
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 2200px; /* 🟢 ADICIONE ISSO: Força a tabela a ser larga para o scroll aparecer */
+  table-layout: auto;
+}
+
+/* 3. Ajuste para as células não ficarem coladas */
+.dashboard-table th, 
+.dashboard-table td {
+  padding: 12px 15px;
+  text-align: left;
 }
 
 /* Tabela Principal */
@@ -148,9 +165,23 @@
   padding: 8px 12px;
 }
 
+/* Deixa o ID fixo na esquerda enquanto o resto desliza */
 .td-id {
+  position: sticky;
+  left: 0;
+  background-color: white; /* Cor de fundo obrigatória para não ficar transparente */
+  z-index: 10;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.05);
   font-weight: bold;
   color: #1e293b;
+}
+
+/* Também precisa fixar o cabeçalho correspondente ao ID */
+.sticky-thead tr:last-child th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 25;
+  background-color: #f8fafc;
 }
 
 .td-route {
