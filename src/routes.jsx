@@ -49,7 +49,6 @@ export const router = createBrowserRouter([
     path: "/login",
     element: <Login />, 
   },
-  // Rota de fallback: se digitar qualquer coisa errada, volta pro Dash ou Login
   {
     path: "*",
     element: <Navigate to="/" replace />
