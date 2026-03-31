@@ -47,7 +47,7 @@
 
 /* 1. Altere o container de scroll */
 .table-scroll-container {
-  overflow-x: auto; /* 🟢 MUDOU DE hidden PARA auto */
+  overflow-x: auto; 
   overflow-y: auto;
   max-height: 65vh; 
   width: 100%;
@@ -60,7 +60,7 @@
   white-space: nowrap;
   width: 100%;
   border-collapse: collapse;
-  min-width: 2200px; /* 🟢 ADICIONE ISSO: Força a tabela a ser larga para o scroll aparecer */
+  min-width: 2200px; /* Força a tabela a ser larga para o scroll aparecer */
   table-layout: auto;
 }
 
@@ -69,13 +69,6 @@
 .dashboard-table td {
   padding: 12px 15px;
   text-align: left;
-}
-
-/* Tabela Principal */
-.dashboard-table {
-  white-space: nowrap;
-  width: 100%;
-  border-collapse: collapse;
 }
 
 /* Cabeçalho Congelado */
@@ -169,7 +162,7 @@
 .td-id {
   position: sticky;
   left: 0;
-  background-color: white; /* Cor de fundo obrigatória para não ficar transparente */
+  background-color: white; 
   z-index: 10;
   box-shadow: 2px 0 5px rgba(0,0,0,0.05);
   font-weight: bold;
@@ -345,4 +338,27 @@
   0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
   70% { transform: scale(1); box-shadow: 0 0 0 5px rgba(239, 68, 68, 0); }
   100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+
+/* --- Novas Classes de Estilização de Célula (Remoção de Inline Styles) --- */
+
+.td-fw-600 {
+  font-weight: 600;
+}
+
+.td-fw-bold {
+  font-weight: bold;
+}
+
+.td-border-right {
+  border-right: 2px solid #f1f5f9;
+}
+
+/* Aplica a borda direita mais escura no header, mas suave na celula (igual ao seu estilo original) */
+th.td-border-right {
+  border-right: 2px solid #e2e8f0;
+}
+
+.td-center {
+  text-align: center;
 }

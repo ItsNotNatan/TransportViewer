@@ -114,7 +114,6 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
   const rangePedido = getRangeValues('pedido', modoPedido);
   const rangeNf = getRangeValues('nf', modoNf);
 
-  // Mantido no JS porque react-select exige para customizar as tags
   const selectStyles = {
     control: (base) => ({ ...base, borderColor: '#d1d5db', boxShadow: 'none', '&:hover': { borderColor: '#9ca3af' }, borderRadius: '0.375rem', padding: '0.1rem' }),
     multiValue: (base) => ({ ...base, backgroundColor: '#dbeafe', borderRadius: '0.25rem' }),
@@ -251,18 +250,20 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
           </div>
         </div>
 
+        {/* --- MODIFICAÇÃO DO RODAPÉ AQUI --- */}
         <div className="modal-footer">
-          <div>
-            {temFiltroAtivo && (
-              <button onClick={() => { onLimpar(); onClose(); }} className="btn-limpar">
-                <XCircle size={16} /> Limpar Filtros
-              </button>
-            )}
+          <div>{/* Esta div vazia empurra os botões para a direita */}</div>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            {/* Removi a condição "temFiltroAtivo &&", agora o botão renderiza sempre! */}
+            <button onClick={() => { onLimpar(); onClose(); }} className="btn-limpar">
+              <XCircle size={16} /> Limpar Filtros
+            </button>
+            <button onClick={onClose} className="btn-submit">
+              Ver Resultados
+            </button>
           </div>
-          <button onClick={onClose} className="btn-submit">
-            Ver Resultados
-          </button>
         </div>
+        {/* ---------------------------------- */}
 
       </div>
     </div>,
