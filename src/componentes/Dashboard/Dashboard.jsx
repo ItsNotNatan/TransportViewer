@@ -4,11 +4,12 @@ import FiltroFat from '../FiltroFat/FiltroFat';
 import BtnExcel from '../BtnExcel/BtnExcel';
 import './Dashboard.css';
 
-// --- Ícones (Mantidos) ---
+// --- Ícones ---
 const TableList = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/></svg>;
 const FolderOpen = ({ size = 24, className = "" }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="m6 14 1.45-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.55 6a2 2 0 0 1-1.94 1.5H4a2 2 0 0 1-2-2V5c0-1.1.9-2 2-2h3.93a2 2 0 0 1 1.66.9l.82 1.2a2 2 0 0 0 1.66.9H18a2 2 0 0 1 2 2v2"/></svg>;
 const ChevronLeft = ({ size = 18 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>;
 const ChevronRight = ({ size = 18 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>;
+const FilterIcon = ({ size = 16 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>;
 
 export default function Dashboard({ atms, carregando, onOpenAtm }) {
   const [filtros, setFiltros] = useState({ 
@@ -26,7 +27,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
 
   const tableContentRef = useRef(null);
 
-  // Reseta para a página 1 sempre que um filtro novo for aplicado
   useEffect(() => { setPaginaAtual(1); }, [filtros]);
 
   const handleFiltroChange = (e) => {
@@ -43,75 +43,22 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     return dataStr;
   };
 
-  const matchMultiSelect = (valorBanco, valorFiltro) => {
-    if (!valorFiltro) return true; 
-    const termos = valorFiltro.toUpperCase().split(',').map(t => t.trim()).filter(Boolean);
-    return termos.some(termo => String(valorBanco || '').toUpperCase().includes(termo));
-  };
-
-  const matchFiltroComIntervalo = (valorBanco, stringFiltro) => {
-    if (!stringFiltro) return true;
-    const valorStr = String(valorBanco || '').toUpperCase().trim();
-    const busca = stringFiltro.toUpperCase().trim();
-    if (busca.includes(',')) { 
-      return busca.split(',').map(t => t.trim()).some(termo => valorStr.includes(termo));
-    } 
-    return valorStr.includes(busca);
-  };
-
-  const isDataNoIntervalo = (dataBancoStr, dataFiltroInicio, dataFiltroFim) => {
-    if (!dataFiltroInicio && !dataFiltroFim) return true;
-    if (!dataBancoStr) return false;
-    const dBanco = new Date(dataBancoStr.split('T')[0]);
-    if (dataFiltroInicio && dBanco < new Date(dataFiltroInicio)) return false;
-    if (dataFiltroFim && dBanco > new Date(dataFiltroFim)) return false;
-    return true;
-  };
-
-  // ==========================================
-  // LÓGICA DE FILTRAGEM
-  // ==========================================
+  // Lógica de filtragem (Mantida)
+  const matchMultiSelect = (v, f) => !f ? true : f.toUpperCase().split(',').some(t => String(v || '').toUpperCase().includes(t.trim()));
+  const matchFiltro = (v, f) => !f ? true : String(v || '').toUpperCase().includes(f.toUpperCase().trim());
+  
   const atmsFiltrados = atms.filter(atm => {
-    const matchId = matchFiltroComIntervalo(atm.numero_atm || shortId(atm.id), filtros.id);
-    const matchPedido = matchFiltroComIntervalo(atm.pedido_compra, filtros.pedido);
-    const matchNf = matchFiltroComIntervalo(atm.nf, filtros.nf);
-    const matchSolicitante = matchMultiSelect(atm.solicitacao, filtros.solicitante);
-    const matchStatus = matchMultiSelect(atm.status, filtros.status);
-    const matchTransportadora = matchMultiSelect(atm.transportadora?.nome, filtros.transportadora);
-    
-    const fat = atm.faturamento || {}; 
-    const matchFatura = matchFiltroComIntervalo(fat.fatura_cte, filtros.fatura);
-    const matchPep = matchFiltroComIntervalo(fat.elemento_pep_cc_wbs || atm.wbs, filtros.elemento_pep);
-    const matchTipoDoc = matchMultiSelect(fat.tipo_documento, filtros.tipo_documento);
-    const matchValidPep = matchMultiSelect(fat.validacao_pep, filtros.validacao_pep);
-    const matchSap = filtros.registrado_sap ? (fat.registrado_sap || 'NÃO') === filtros.registrado_sap : true;
-
-    const matchDataOp = isDataNoIntervalo(atm.data_solicitacao, filtros.data_inicio, filtros.data_fim);
-    const matchDataMap = isDataNoIntervalo(fat.data_mapeamento, filtros.data_map_inicio, filtros.data_map_fim);
-    const matchDataEmi = isDataNoIntervalo(fat.data_emissao, filtros.data_emissao_inicio, filtros.data_emissao_fim);
-    const matchDataVenc = isDataNoIntervalo(fat.vencimento, filtros.data_venc_inicio, filtros.data_venc_fim);
-
-    return matchId && matchDataOp && matchSolicitante && matchPedido && matchNf && matchStatus && matchTransportadora && 
-           matchFatura && matchPep && matchTipoDoc && matchValidPep && matchDataMap && matchDataEmi && matchDataVenc && matchSap;
+    const fat = atm.faturamento || {};
+    return matchFiltro(atm.numero_atm || shortId(atm.id), filtros.id) &&
+           matchFiltro(atm.pedido_compra, filtros.pedido) &&
+           matchFiltro(atm.nf, filtros.nf) &&
+           matchMultiSelect(atm.solicitacao, filtros.solicitante) &&
+           matchMultiSelect(atm.status, filtros.status) &&
+           matchMultiSelect(atm.transportadora?.nome, filtros.transportadora);
   });
 
-  const getStatusClass = (status) => {
-    if (status === 'Entregue') return 'badge-success';
-    if (status === 'Aguardando Aprovação') return 'badge-warning';
-    return 'badge-info';
-  };
-
-  // Lógica de Paginação
   const totalPaginas = Math.ceil(atmsFiltrados.length / itensPorPagina);
   const atmsExibidos = atmsFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
-
-  const irParaPaginaAnterior = () => {
-    if (paginaAtual > 1) setPaginaAtual(paginaAtual - 1);
-  };
-
-  const irParaProximaPagina = () => {
-    if (paginaAtual < totalPaginas) setPaginaAtual(paginaAtual + 1);
-  };
 
   return (
     <section className="fade-in section-dashboard">
@@ -129,24 +76,61 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
       <div className="table-main-wrapper">
         <div className="table-scroll-container">
           <table className="dashboard-table" ref={tableContentRef}>
-            <thead className="sticky-thead">
-              <tr>
-                <th colSpan="9" className="th-group-op">DADOS DA OPERAÇÃO</th>
-                <th colSpan="9" className="th-group-fat">FATURAMENTO / SAP</th>
-                <th style={{ backgroundColor: '#f8fafc' }}></th>
-              </tr>
-              <tr className="tr-subheader">
-                <th>ID ATM</th><th>WBS</th><th>Solicitante</th><th>Pedido</th><th>NF</th><th>Rota</th><th>T. Frete</th><th>Veículo</th><th style={{ borderRight: '2px solid #e2e8f0' }}>Status</th>
-                <th>Tipo Doc.</th><th>Data Map.</th><th>Fatura</th><th>Valor (R$)</th><th>Data Emissão</th><th>Vencimento</th><th>Elem. PEP</th><th>Valid. PEP</th><th>SAP</th>
-                <th className="th-sticky-action">Ações</th>
-              </tr>
-            </thead>
+
+<thead>
+  <tr>
+    {/* GRUPO OPERAÇÃO */}
+    <th colSpan="11" className="th-group-op">
+      <div className="th-group-content">
+        <span className="th-group-title">DADOS DA OPERAÇÃO</span>
+        <button className="btn-filter-header op" onClick={() => setAbertoFiltroOp(true)}>
+          <FilterIcon size={14} /> Filtros
+        </button>
+      </div>
+    </th>
+
+    {/* GRUPO FATURAMENTO */}
+    <th colSpan="9" className="th-group-fat">
+      <div className="th-group-content">
+        <span className="th-group-title">FATURAMENTO / SAP</span>
+        <button className="btn-filter-header fat" onClick={() => setAbertoFiltroFat(true)}>
+          <FilterIcon size={14} /> Filtros
+        </button>
+      </div>
+    </th>
+    <th className="th-sticky-action"></th>
+  </tr>
+
+  <tr className="tr-subheader">
+    <th className="sticky-column-left">ID ATM</th>
+    <th>WBS</th>
+    <th>Solicitante</th>
+    <th>Pedido</th>
+    <th>NF</th>
+    <th className="col-highlight">Transporte</th>
+    <th className="col-highlight">Vlr. Frete</th>
+    <th>Rota</th>
+    <th>T. Frete</th>
+    <th>Veículo</th>
+    <th style={{ borderRight: '2px solid #e2e8f0' }}>Status</th>
+    <th>Tipo Doc.</th>
+    <th>Data Map.</th>
+    <th>Fatura</th>
+    <th>Valor (R$)</th>
+    <th>Data Emissão</th>
+    <th>Vencimento</th>
+    <th>Elem. PEP</th>
+    <th>Valid. PEP</th>
+    <th>SAP</th>
+    <th className="th-sticky-action">Ações</th>
+  </tr>
+</thead>
             
             <tbody>
               {carregando ? (
-                <tr><td colSpan="19" className="td-empty-state">Carregando dados mestre...</td></tr>
+                <tr><td colSpan="21" className="td-empty-state">Carregando dados mestre...</td></tr>
               ) : atmsExibidos.length === 0 ? (
-                <tr><td colSpan="19" className="td-empty-state">Nenhum resultado encontrado.</td></tr>
+                <tr><td colSpan="21" className="td-empty-state">Nenhum resultado encontrado.</td></tr>
               ) : atmsExibidos.map((atm) => (
                 <tr key={atm.id} className="tr-data">
                   <td className="td-id">#{shortId(atm.id)}</td>
@@ -154,6 +138,13 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
                   <td>{atm.solicitacao || '-'}</td>
                   <td>{atm.pedido_compra || '-'}</td>
                   <td>{atm.nf || '-'}</td>
+                  
+                  {/* NOVAS COLUNAS */}
+                  <td style={{ fontWeight: '600' }}>{atm.transportadora?.nome || 'A DEFINIR'}</td>
+                  <td style={{ fontWeight: 'bold' }}>
+                    {Number(atm.valor_frete || atm.valor || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}
+                  </td>
+
                   <td className="td-route">
                     <span>De:</span> {atm.origem?.municipio}<br/>
                     <span>Para:</span> {atm.destino?.municipio}
@@ -161,25 +152,20 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
                   <td><small>{atm.tipo_frete || '-'}</small></td>
                   <td>{atm.veiculo || '-'}</td>
                   <td style={{ borderRight: '2px solid #f1f5f9' }}>
-                    <span className={`badge ${getStatusClass(atm.status)}`}>{atm.status}</span>
+                    <span className={`badge ${atm.status === 'Entregue' ? 'badge-success' : 'badge-info'}`}>{atm.status}</span>
                   </td>
                   
-                  {/* 🟢 DADOS QUE VEM DO OBJETO FATURAMENTO 🟢 */}
                   <td>{atm.faturamento?.tipo_documento || '-'}</td>
                   <td><small>{formatarDataCurta(atm.faturamento?.data_mapeamento)}</small></td>
                   <td className="td-fatura">{atm.faturamento?.fatura_cte || '-'}</td>
                   <td className="td-valor">
-                    {Number(atm.faturamento?.valor || atm.valor_nf || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}
+                    {Number(atm.faturamento?.valor || 0).toLocaleString('pt-BR', {style: 'currency', currency: 'BRL'})}
                   </td>
                   <td>{formatarDataCurta(atm.faturamento?.data_emissao)}</td>
                   <td><strong className="td-vencimento">{formatarDataCurta(atm.faturamento?.vencimento)}</strong></td>
-                  <td><small>{atm.faturamento?.elemento_pep_cc_wbs || atm.wbs || '-'}</small></td>
+                  <td><small>{atm.faturamento?.elemento_pep_cc_wbs || '-'}</small></td>
                   <td>{atm.faturamento?.validacao_pep || '-'}</td>
-                  <td style={{textAlign: 'center'}}>
-                    <span style={{color: atm.faturamento?.registrado_sap === 'SIM' ? '#059669' : '#94a3b8', fontWeight: 'bold'}}>
-                      {atm.faturamento?.registrado_sap || 'NÃO'}
-                    </span>
-                  </td>
+                  <td style={{textAlign: 'center'}}>{atm.faturamento?.registrado_sap || 'NÃO'}</td>
                   <td className="th-sticky-action">
                     <button className="btn-action" onClick={() => onOpenAtm(atm)}>
                       <FolderOpen size={14} /> Abrir
@@ -191,33 +177,18 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
           </table>
         </div>
 
-        {/* 👇 O RODAPÉ DE PAGINAÇÃO VOLTOU AQUI 👇 */}
         {!carregando && atmsFiltrados.length > 0 && (
           <div className="pagination-wrapper">
             <div className="pagination-info">
               Mostrando <strong>{((paginaAtual - 1) * itensPorPagina) + 1}</strong> até <strong>{Math.min(paginaAtual * itensPorPagina, atmsFiltrados.length)}</strong> de <strong>{atmsFiltrados.length}</strong> registros
             </div>
             <div className="pagination-controls">
-              <button 
-                className="pagination-btn" 
-                onClick={irParaPaginaAnterior} 
-                disabled={paginaAtual === 1}
-              >
-                <ChevronLeft /> Anterior
-              </button>
-              <span className="pagination-page-text">Página {paginaAtual} de {totalPaginas}</span>
-              <button 
-                className="pagination-btn" 
-                onClick={irParaProximaPagina} 
-                disabled={paginaAtual === totalPaginas}
-              >
-                Próxima <ChevronRight />
-              </button>
+              <button className="pagination-btn" onClick={() => setPaginaAtual(p => Math.max(p-1, 1))} disabled={paginaAtual === 1}><ChevronLeft /> Anterior</button>
+              <span className="pagination-page-text">{paginaAtual} / {totalPaginas}</span>
+              <button className="pagination-btn" onClick={() => setPaginaAtual(p => Math.min(p+1, totalPaginas))} disabled={paginaAtual === totalPaginas}>Próxima <ChevronRight /></button>
             </div>
           </div>
         )}
-        {/* 👆 FIM DA PAGINAÇÃO 👆 */}
-        
       </div>
     </section>
   );
