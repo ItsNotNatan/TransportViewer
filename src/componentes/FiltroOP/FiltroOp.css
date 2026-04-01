@@ -167,33 +167,32 @@
   box-sizing: border-box;
 }
 
+/* --- ESTILOS DO RODAPÉ E BOTÕES AJUSTADOS --- */
 .modal-footer {
   display: flex;
-  justify-content: space-between;
+  justify-content: space-between; /* 🟢 Separa os botões (um na esquerda, um na direita) */
   align-items: center;
   border-top: 1px solid #e5e7eb;
   background-color: #f9fafb;
   padding: 1rem 1.5rem;
 }
 
-/* --- ESTILOS DOS BOTÕES AJUSTADOS --- */
-
 .btn-limpar {
   display: flex;
   align-items: center;
+  justify-content: center; 
   gap: 0.5rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 1.25rem;
   border-radius: 0.375rem;
   border: 1px solid #fca5a5;
   background-color: #fee2e2;
   color: #ef4444;
   font-weight: bold;
   cursor: pointer;
-  /* Adicionada transição suave */
   transition: all 0.2s ease-in-out; 
+  height: 40px; /* 🟢 Força a mesma altura */
 }
 
-/* Novo efeito de hover para o botão de limpar */
 .btn-limpar:hover {
   background-color: #fecaca;
   border-color: #f87171;
@@ -201,18 +200,20 @@
 }
 
 .btn-submit {
+  display: flex;
+  align-items: center;
+  justify-content: center; 
   background-color: #2563eb;
   color: white;
-  border: none;
+  border: 1px solid transparent; /* 🟢 Borda transparente para igualar a matemática do tamanho */
   padding: 0.5rem 1.5rem;
   border-radius: 0.375rem;
   font-weight: bold;
   cursor: pointer;
-  /* Adicionada transição suave */
   transition: background-color 0.2s ease-in-out; 
+  height: 40px; /* 🟢 Força a mesma altura */
 }
 
-/* Novo efeito de hover para o botão de submit */
 .btn-submit:hover {
   background-color: #1d4ed8;
 }

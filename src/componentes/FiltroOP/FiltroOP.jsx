@@ -2,7 +2,7 @@
 import React, { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import Select from 'react-select';
-import './FiltroOP.css'; // <-- Importando o CSS
+import './FiltroOP.css';
 
 const XCircle = ({ size = 20, className = "" }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
@@ -57,8 +57,6 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
       datas: formatarOpcoesData 
     };
   }, [atms]);
-
-  const temFiltroAtivo = [filtros.id, filtros.solicitante, filtros.pedido, filtros.nf, filtros.status, filtros.transportadora, filtros.data_inicio, filtros.data_fim, filtros.data_especifica].some(valor => valor !== '' && valor !== undefined);
 
   const alternarModo = (campo, modo) => {
     if (campo === 'id') { setModoId(modo); onFiltroChange({ target: { name: 'id', value: '' } }); }
@@ -250,20 +248,16 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
           </div>
         </div>
 
-        {/* --- MODIFICAÇÃO DO RODAPÉ AQUI --- */}
+{/* --- RODAPÉ COM OS BOTÕES SEPARADOS E MESMA ALTURA --- */}
         <div className="modal-footer">
-          <div>{/* Esta div vazia empurra os botões para a direita */}</div>
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            {/* Removi a condição "temFiltroAtivo &&", agora o botão renderiza sempre! */}
-            <button onClick={() => { onLimpar(); onClose(); }} className="btn-limpar">
-              <XCircle size={16} /> Limpar Filtros
-            </button>
-            <button onClick={onClose} className="btn-submit">
-              Ver Resultados
-            </button>
-          </div>
+          <button type="button" onClick={onLimpar} className="btn-limpar">
+            <XCircle size={18} /> Limpar Filtros
+          </button>
+          
+          <button type="button" onClick={onClose} className="btn-submit">
+            Ver Resultados
+          </button>
         </div>
-        {/* ---------------------------------- */}
 
       </div>
     </div>,

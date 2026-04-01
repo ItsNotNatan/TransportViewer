@@ -49,8 +49,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
   // Função para limpar todos os filtros
   const limparFiltros = () => {
     setFiltros(valoresIniciaisFiltro);
-    setAbertoFiltroOp(false);
-    setAbertoFiltroFat(false);
   };
 
   // 1º uso do useMemo: Memorizar a lista filtrada
