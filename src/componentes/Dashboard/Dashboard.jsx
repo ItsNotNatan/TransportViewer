@@ -144,7 +144,7 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
                 <tr><td colSpan="21" className="td-empty-state">Nenhum resultado encontrado.</td></tr>
               ) : atmsExibidos.map((atm) => (
                 <tr key={atm.id} className="tr-data">
-                  <td className="td-id">#{shortId(atm.id)}</td>
+                  <td className="td-id">#{atm.numero_atm || shortId(atm.id)}</td>
                   <td>{atm.wbs || '-'}</td>
                   <td>{atm.solicitacao || '-'}</td>
                   <td>{atm.pedido_compra || '-'}</td>

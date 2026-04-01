@@ -33,12 +33,6 @@ export default function AdminDashboard() {
 
   return (
     <div style={{ padding: '1rem' }}>
-      {/* ⚠️ CAIXA DE DEBUG TEMPORÁRIA ⚠️ */}
-      <div style={{ background: '#000', color: '#0f0', padding: '10px', marginBottom: '10px', fontSize: '12px', fontFamily: 'monospace' }}>
-        STATUS DO SISTEMA: {debugInfo} <br/>
-        TOKEN PRESENTE: {localStorage.getItem('accessToken') ? 'SIM' : 'NÃO'}
-      </div>
-
       <DashboardComponent 
         atms={atms} 
         carregando={carregando} 
