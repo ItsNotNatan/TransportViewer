@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from '../../services/api'; // O seu axios configurado
+import api from '../../services/api';
 import './EditorVeiculos.css';
 
 // --- Ícones ---
@@ -11,8 +11,6 @@ export default function EditorVeiculos() {
   const [veiculos, setVeiculos] = useState([]);
   const [carregando, setCarregando] = useState(false);
   const [selecionado, setSelecionado] = useState(null);
-
-  // NOVO: Controle da unidade de medida atual (m ou cm)
   const [unidade, setUnidade] = useState('m');
 
   const [formData, setFormData] = useState({
@@ -41,7 +39,7 @@ export default function EditorVeiculos() {
 
   const handleSelect = (v) => {
     setSelecionado(v);
-    setUnidade('m'); // Ao selecionar um veículo do banco, voltamos para metros (padrão)
+    setUnidade('m');
     setFormData({
       nome: v.nome,
       comprimento: v.comprimento,
@@ -52,26 +50,23 @@ export default function EditorVeiculos() {
 
   const handleNovo = () => {
     setSelecionado(null);
-    setUnidade('m'); // Reseta a unidade para o padrão
+    setUnidade('m');
     setFormData({ nome: '', comprimento: '', largura: '', altura: '' });
   };
 
-  // NOVO: Função para trocar a unidade e converter os valores já digitados
   const handleTrocarUnidade = (novaUnidade) => {
     if (unidade === novaUnidade) return;
-    
     setUnidade(novaUnidade);
 
     setFormData(prev => {
-      const c = parseFloat(prev.comprimento);
-      const l = parseFloat(prev.largura);
-      const a = parseFloat(prev.altura);
-
+      const fator = novaUnidade === 'cm' ? 100 : 0.01;
+      const formatar = (val) => val ? (parseFloat(val) * fator).toFixed(novaUnidade === 'cm' ? 0 : 2) : '';
+      
       return {
         ...prev,
-        comprimento: c ? (novaUnidade === 'cm' ? (c * 100).toFixed(0) : (c / 100).toFixed(2)) : '',
-        largura: l ? (novaUnidade === 'cm' ? (l * 100).toFixed(0) : (l / 100).toFixed(2)) : '',
-        altura: a ? (novaUnidade === 'cm' ? (a * 100).toFixed(0) : (a / 100).toFixed(2)) : '',
+        comprimento: formatar(prev.comprimento),
+        largura: formatar(prev.largura),
+        altura: formatar(prev.altura),
       };
     });
   };
@@ -79,22 +74,13 @@ export default function EditorVeiculos() {
   const handleSalvar = async (e) => {
     e.preventDefault();
     try {
-      // NOVO: Antes de salvar, garantimos que os dados vão em metros para o banco
-      let comp = parseFloat(formData.comprimento);
-      let larg = parseFloat(formData.largura);
-      let alt = parseFloat(formData.altura);
-
-      if (unidade === 'cm') {
-        comp = comp / 100;
-        larg = larg / 100;
-        alt = alt / 100;
-      }
-
+      const fator = unidade === 'cm' ? 100 : 1;
+      
       const payload = {
         nome: formData.nome,
-        comprimento: comp,
-        largura: larg,
-        altura: alt,
+        comprimento: parseFloat(formData.comprimento) / fator,
+        largura: parseFloat(formData.largura) / fator,
+        altura: parseFloat(formData.altura) / fator,
         ativo: true 
       };
 
@@ -110,7 +96,7 @@ export default function EditorVeiculos() {
       handleNovo();
     } catch (error) {
       console.error("Erro ao salvar:", error);
-      alert("Erro ao salvar dados do veículo. Verifique o console.");
+      alert("Erro ao salvar dados do veículo.");
     }
   };
 
@@ -126,17 +112,11 @@ export default function EditorVeiculos() {
     }
   };
 
-  // Ajustado: O volume sempre é em metros cúbicos, então convertemos se estiver em 'cm'
   const calcularVolume = () => {
-    let c = parseFloat(formData.comprimento) || 0;
-    let l = parseFloat(formData.largura) || 0;
-    let a = parseFloat(formData.altura) || 0;
-    
-    if (unidade === 'cm') {
-      c /= 100;
-      l /= 100;
-      a /= 100;
-    }
+    const fator = unidade === 'cm' ? 100 : 1;
+    const c = (parseFloat(formData.comprimento) || 0) / fator;
+    const l = (parseFloat(formData.largura) || 0) / fator;
+    const a = (parseFloat(formData.altura) || 0) / fator;
     
     return (c * l * a).toFixed(2);
   };
@@ -145,13 +125,10 @@ export default function EditorVeiculos() {
     <div className="editor-veiculos-page fade-in">
       <div className="editor-container">
         
-        {/* LISTA DE VEÍCULOS (Esquerda) */}
+        {/* LISTA DE VEÍCULOS */}
         <aside className="veiculos-list-panel">
           <div className="panel-header">
             <h3>Frota Cadastrada</h3>
-            <button className="btn-icon-add" onClick={handleNovo} title="Adicionar Novo">
-              <Plus />
-            </button>
           </div>
           
           <div className="list-scroll">
@@ -176,7 +153,7 @@ export default function EditorVeiculos() {
           </div>
         </aside>
 
-        {/* FORMULÁRIO DE EDIÇÃO (Direita) */}
+        {/* FORMULÁRIO DE EDIÇÃO */}
         <main className="veiculo-form-panel">
           <div className="panel-header">
             <h3>{selecionado ? `Editando: ${selecionado.nome}` : 'Cadastrar Novo Veículo'}</h3>
@@ -194,22 +171,13 @@ export default function EditorVeiculos() {
               />
             </div>
 
-            {/* NOVO: Botões para escolher a unidade */}
             <div className="unit-toggle-container">
               <label>Unidade de Medida</label>
               <div className="unit-buttons">
-                <button 
-                  type="button" 
-                  className={unidade === 'm' ? 'active' : ''} 
-                  onClick={() => handleTrocarUnidade('m')}
-                >
+                <button type="button" className={unidade === 'm' ? 'active' : ''} onClick={() => handleTrocarUnidade('m')}>
                   Metros (m)
                 </button>
-                <button 
-                  type="button" 
-                  className={unidade === 'cm' ? 'active' : ''} 
-                  onClick={() => handleTrocarUnidade('cm')}
-                >
+                <button type="button" className={unidade === 'cm' ? 'active' : ''} onClick={() => handleTrocarUnidade('cm')}>
                   Centímetros (cm)
                 </button>
               </div>
@@ -244,9 +212,7 @@ export default function EditorVeiculos() {
 
             <div className="volume-preview-card">
               <span>Volume Máximo Estimado:</span>
-              <strong>
-                {calcularVolume()} m³
-              </strong>
+              <strong>{calcularVolume()} m³</strong>
             </div>
 
             <div className="form-actions-v">

@@ -1,6 +1,7 @@
 .editor-veiculos-page {
   padding: 20px;
   height: 100%;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 .editor-container {
@@ -25,7 +26,7 @@
 
 .panel-header {
   padding: 20px;
-  background: #f9fafb;
+  background: #f8fafc;
   border-bottom: 1px solid #e5e7eb;
   display: flex;
   justify-content: space-between;
@@ -34,8 +35,8 @@
 
 .panel-header h3 {
   font-size: 1rem;
-  font-weight: 800;
-  color: #111827;
+  font-weight: 700;
+  color: #1e293b; /* Azul ardósia escuro */
   margin: 0;
 }
 
@@ -48,33 +49,33 @@
 
 .veiculo-card-item {
   padding: 15px;
-  border: 1px solid #f3f4f6;
+  border: 1px solid #f1f5f9;
   border-radius: 8px;
   margin-bottom: 10px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
 
 .veiculo-card-item:hover {
-  border-color: #f97316;
-  background: #fffaf5;
+  border-color: #bfdbfe; /* Borda azul clara no hover */
+  background: #f8fafc;
 }
 
 .veiculo-card-item.active {
-  border-color: #f97316;
-  background: #fff7ed;
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
+  border-color: #2563eb; /* Azul primário */
+  background: #eff6ff; /* Fundo azul clarinho */
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
 }
 
-.v-info strong { display: block; font-size: 0.9rem; color: #1f2937; }
-.v-info span { font-size: 0.75rem; color: #6b7280; font-family: monospace; }
+.v-info strong { display: block; font-size: 0.9rem; color: #1e293b; }
+.v-info span { font-size: 0.75rem; color: #64748b; font-family: monospace; }
 
 /* Botões */
 .btn-icon-add {
-  background: #0f172a;
+  background: #2563eb; /* Azul primário */
   color: white;
   border: none;
   width: 32px;
@@ -84,14 +85,20 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.2s;
+}
+
+.btn-icon-add:hover {
+  background: #1d4ed8; /* Azul mais escuro no hover */
 }
 
 .btn-del-small {
   background: none;
   border: none;
-  color: #9ca3af;
+  color: #94a3b8;
   cursor: pointer;
   padding: 5px;
+  transition: color 0.2s;
 }
 
 .btn-del-small:hover { color: #ef4444; }
@@ -103,7 +110,7 @@
 
 .form-row-full { margin-bottom: 20px; }
 
-/* NOVO: Estilos do seletor de unidade */
+/* Estilos do seletor de unidade */
 .unit-toggle-container {
   margin-bottom: 20px;
 }
@@ -114,11 +121,11 @@
 }
 
 .unit-buttons button {
-  background: #f3f4f6;
-  border: 1px solid #d1d5db;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   padding: 8px 16px;
   border-radius: 6px;
-  color: #4b5563;
+  color: #64748b;
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
@@ -126,13 +133,13 @@
 }
 
 .unit-buttons button:hover {
-  background: #e5e7eb;
+  background: #e2e8f0;
 }
 
 .unit-buttons button.active {
-  background: rgba(249, 115, 22, 0.1);
-  border-color: #f97316;
-  color: #f97316;
+  background: #eff6ff; /* Fundo azul claro */
+  border-color: #2563eb; /* Borda azul primário */
+  color: #2563eb; /* Texto azul primário */
 }
 
 .form-grid-dimensions {
@@ -145,8 +152,8 @@
 label {
   display: block;
   font-size: 0.75rem;
-  font-weight: 700;
-  color: #4b5563;
+  font-weight: 600;
+  color: #64748b;
   margin-bottom: 8px;
   text-transform: uppercase;
 }
@@ -154,17 +161,28 @@ label {
 input {
   width: 100%;
   padding: 12px;
+  background-color: #ffffff; /* 🟢 CORREÇÃO: Força o fundo a ser branco */
   border: 1px solid #d1d5db;
   border-radius: 8px;
   font-size: 0.9rem;
+  color: #1e293b;
   outline: none;
+  transition: all 0.2s ease;
 }
 
-input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1); }
+/* Opcional: Se quiser clarear também o texto do placeholder (o "Ex: Carreta LS...") */
+input::placeholder {
+  color: #94a3b8;
+}
+
+input:focus { 
+  border-color: #2563eb; 
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); 
+}
 
 /* Card de Volume */
 .volume-preview-card {
-  background: #f0fdf4;
+  background: #f0fdf4; /* Mantido verde suave pois indica sucesso/cálculo OK */
   border: 1px solid #bbf7d0;
   padding: 20px;
   border-radius: 12px;
@@ -172,35 +190,47 @@ input:focus { border-color: #f97316; box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.
   margin-bottom: 30px;
 }
 
-.volume-preview-card span { display: block; font-size: 0.8rem; color: #166534; margin-bottom: 5px; }
+.volume-preview-card span { display: block; font-size: 0.8rem; color: #166534; margin-bottom: 5px; font-weight: 500; }
 .volume-preview-card strong { font-size: 1.5rem; color: #15803d; }
 
 .form-actions-v {
   display: flex;
   justify-content: flex-end;
   gap: 15px;
-  border-top: 1px solid #eee;
+  border-top: 1px solid #e5e7eb;
   padding-top: 25px;
 }
 
 .btn-save-v {
-  background: #f97316;
+  background: #2563eb; /* Azul primário */
   color: white;
   border: none;
   padding: 12px 25px;
   border-radius: 8px;
-  font-weight: 700;
+  font-weight: 600;
   display: flex;
   align-items: center;
   gap: 8px;
   cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.btn-save-v:hover {
+  background: #1d4ed8; /* Azul mais escuro no hover */
 }
 
 .btn-cancel {
   background: white;
   border: 1px solid #d1d5db;
+  color: #4b5563;
   padding: 12px 25px;
   border-radius: 8px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-cancel:hover {
+  background: #f1f5f9;
+  color: #1e293b;
 }
