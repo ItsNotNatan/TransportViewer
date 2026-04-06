@@ -71,13 +71,20 @@
   text-align: left;
 }
 
-/* Cabeçalho Congelado */
+/* --- PASSO 2: Cabeçalho Congelado Aprimorado --- */
 .sticky-thead {
   position: sticky;
   top: 0;
-  z-index: 20;
+  /* z-index alto (40) garante que o cabeçalho fique acima de todos os dados do corpo da tabela */
+  z-index: 40; 
   box-shadow: 0 4px 6px -2px rgba(0,0,0,0.1);
 }
+
+/* Esta regra previne que os dados do body "vazem" através das bordas ao rolar para baixo */
+.sticky-thead th {
+  background-clip: padding-box;
+}
+/* ------------------------------------------------- */
 
 /* Células de Cabeçalho Superiores (Operação / Faturamento) */
 .th-group-op {

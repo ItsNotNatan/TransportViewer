@@ -102,6 +102,39 @@
 }
 
 .form-row-full { margin-bottom: 20px; }
+
+/* NOVO: Estilos do seletor de unidade */
+.unit-toggle-container {
+  margin-bottom: 20px;
+}
+
+.unit-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.unit-buttons button {
+  background: #f3f4f6;
+  border: 1px solid #d1d5db;
+  padding: 8px 16px;
+  border-radius: 6px;
+  color: #4b5563;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.unit-buttons button:hover {
+  background: #e5e7eb;
+}
+
+.unit-buttons button.active {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: #f97316;
+  color: #f97316;
+}
+
 .form-grid-dimensions {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

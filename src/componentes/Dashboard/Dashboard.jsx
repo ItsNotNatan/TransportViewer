@@ -86,7 +86,8 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
       <div className="table-main-wrapper">
         <div className="table-scroll-container">
           <table className="dashboard-table" ref={tableContentRef}>
-            <thead>
+            {/* PASSO 1: Adicionada a classe sticky-thead aqui! */}
+            <thead className="sticky-thead">
               <tr>
                 {/* GRUPO OPERAÇÃO */}
                 <th colSpan="11" className="th-group-op">
