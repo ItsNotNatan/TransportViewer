@@ -3,6 +3,8 @@ import React, { useState } from 'react';
 import pdfMake from 'pdfmake/build/pdfmake';
 import pdfFonts from 'pdfmake/build/vfs_fonts';
 
+// Importação das imagens
+import carimbo from '../../assets/carimbo.png';
 import logoComau from '../../assets/logo-comau.png';
 
 try {
@@ -50,7 +52,11 @@ export default function BtnPdf({ atm }) {
     setGerando(true);
 
     try {
-      const logoBase64 = await getBase64ImageFromURL(logoComau);
+      // 👇 Carregando as duas imagens (Logo e Carimbo) paralelamente
+      const [logoBase64, carimboBase64] = await Promise.all([
+        getBase64ImageFromURL(logoComau),
+        getBase64ImageFromURL(carimbo)
+      ]);
 
       const docDefinition = {
         pageSize: 'A4',
@@ -165,14 +171,21 @@ export default function BtnPdf({ atm }) {
             margin: [0, 0, 0, 20]
           },
 
-          // ASSINATURA CENTRALIZADA COM ESPAÇO ADICIONAL (margin top: 40)
+          // ASSINATURA CENTRALIZADA COM CARIMBO
           {
-            margin: [0, 40, 0, 0], 
+            margin: [0, 20, 0, 0], // Margem ajustada para acomodar o carimbo
             columns: [
               { width: '*', text: '' },
               {
                 width: 280,
                 stack: [
+                  // 👇 A IMAGEM DO CARIMBO ENTRA AQUI, antes da linha!
+                  {
+                    image: carimboBase64,
+                    width: 220, // Ajuste a largura do carimbo conforme necessário
+                    alignment: 'center',
+                    margin: [0, 0, 0, 10] // Distância do carimbo para a linha preta
+                  },
                   { canvas: [{ type: 'line', x1: 0, y1: 0, x2: 280, y2: 0, lineWidth: 1 }] },
                   { text: 'ASSINATURA DO SOLICITANTE: ENGENHARIA', style: 'signatureLabel', margin: [0, 5, 0, 2] },
                   { text: `Emissão: ${new Date().toLocaleDateString()} | Sistema ATM Log`, fontSize: 8, color: 'gray' }
@@ -198,7 +211,7 @@ export default function BtnPdf({ atm }) {
       pdfMake.createPdf(docDefinition).download(`ATM_${atm.numero_atm || 'doc'}.pdf`);
     } catch (error) {
       console.error("Erro ao gerar PDF:", error);
-      alert("Erro ao gerar PDF.");
+      alert("Erro ao carregar imagens ou gerar PDF.");
     } finally {
       setGerando(false);
     }
