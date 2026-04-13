@@ -69,6 +69,15 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
     return atmsFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
   }, [atmsFiltrados, paginaAtual]);
 
+  // Função de cor do badge adaptada aos novos status
+  const getStatusClass = (status) => {
+    const s = status?.toLowerCase();
+    if (s === 'entregue') return 'badge-success';
+    if (s === 'recusado' || s === 'frete morto') return 'badge-danger'; 
+    if (s === 'em rota') return 'badge-info';
+    return 'badge-warning';
+  };
+
   return (
     <section className="fade-in section-dashboard">
       <div className="dashboard-header">
@@ -137,48 +146,55 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) {
                 <tr><td colSpan="20" className="td-empty-state">Carregando dados mestre...</td></tr>
               ) : atmsExibidos.length === 0 ? (
                 <tr><td colSpan="20" className="td-empty-state">Nenhum resultado encontrado.</td></tr>
-              ) : atmsExibidos.map((atm) => (
-                <tr 
-                  key={atm.id} 
-                  className="tr-data" 
-                  onDoubleClick={() => onOpenAtm(atm)} 
-                  style={{ cursor: 'pointer' }}
-                  title="Duplo clique para abrir detalhes"
-                >
-                  <td className="td-id">#{atm.numero_atm || shortId(atm.id)}</td>
-                  <td>{atm.wbs || '-'}</td>
-                  <td>{atm.solicitacao || '-'}</td>
-                  <td>{atm.pedido_compra || '-'}</td>
-                  <td>{atm.nf || '-'}</td>
-                  
-                  <td className="td-fw-600">{atm.transportadora?.nome || 'A DEFINIR'}</td>
-                  <td className="td-fw-bold">
-                    {formatarMoeda(atm.valor_frete || atm.valor || 0)}
-                  </td>
+              ) : atmsExibidos.map((atm) => {
+                
+                // 👇 Verifica se está recusado para aplicar a classe CSS correta
+                const isRecusado = atm.status?.toLowerCase() === 'recusado';
 
-                  <td className="td-route">
-                    <span>De:</span> {atm.origem?.municipio}<br/>
-                    <span>Para:</span> {atm.destino?.municipio}
-                  </td>
-                  <td><small>{atm.tipo_frete || '-'}</small></td>
-                  <td>{atm.veiculo || '-'}</td>
-                  <td className="td-border-right">
-                    <span className={`badge ${atm.status === 'Entregue' ? 'badge-success' : 'badge-info'}`}>{atm.status}</span>
-                  </td>
-                  
-                  <td>{atm.faturamento?.tipo_documento || '-'}</td>
-                  <td><small>{formatarDataCurta(atm.faturamento?.data_mapeamento)}</small></td>
-                  <td className="td-fatura">{atm.faturamento?.fatura_cte || '-'}</td>
-                  <td className="td-valor">
-                    {formatarMoeda(atm.faturamento?.valor || 0)}
-                  </td>
-                  <td>{formatarDataCurta(atm.faturamento?.data_emissao)}</td>
-                  <td><strong className="td-vencimento">{formatarDataCurta(atm.faturamento?.vencimento)}</strong></td>
-                  <td><small>{atm.faturamento?.elemento_pep_cc_wbs || '-'}</small></td>
-                  <td>{atm.faturamento?.validacao_pep || '-'}</td>
-                  <td className="td-center">{atm.faturamento?.registrado_sap || 'NÃO'}</td>
-                </tr>
-              ))}
+                return (
+                  <tr 
+                    key={atm.id} 
+                    // 👇 Passamos a classe dinâmica aqui:
+                    className={`tr-data ${isRecusado ? 'linha-recusada' : ''}`} 
+                    onDoubleClick={() => onOpenAtm(atm)} 
+                    style={{ cursor: 'pointer' }}
+                    title="Duplo clique para abrir detalhes"
+                  >
+                    <td className="td-id">#{atm.numero_atm || shortId(atm.id)}</td>
+                    <td>{atm.wbs || '-'}</td>
+                    <td>{atm.solicitacao || '-'}</td>
+                    <td>{atm.pedido_compra || '-'}</td>
+                    <td>{atm.nf || '-'}</td>
+                    
+                    <td className="td-fw-600">{atm.transportadora?.nome || 'A DEFINIR'}</td>
+                    <td className="td-fw-bold">
+                      {formatarMoeda(atm.valor_frete || atm.valor || 0)}
+                    </td>
+
+                    <td className="td-route">
+                      <span>De:</span> {atm.origem?.municipio}<br/>
+                      <span>Para:</span> {atm.destino?.municipio}
+                    </td>
+                    <td><small>{atm.tipo_frete || '-'}</small></td>
+                    <td>{atm.veiculo || '-'}</td>
+                    <td className="td-border-right">
+                      <span className={`badge ${getStatusClass(atm.status)}`}>{atm.status}</span>
+                    </td>
+                    
+                    <td>{atm.faturamento?.tipo_documento || '-'}</td>
+                    <td><small>{formatarDataCurta(atm.faturamento?.data_mapeamento)}</small></td>
+                    <td className="td-fatura">{atm.faturamento?.fatura_cte || '-'}</td>
+                    <td className="td-valor">
+                      {formatarMoeda(atm.faturamento?.valor || 0)}
+                    </td>
+                    <td>{formatarDataCurta(atm.faturamento?.data_emissao)}</td>
+                    <td><strong className="td-vencimento">{formatarDataCurta(atm.faturamento?.vencimento)}</strong></td>
+                    <td><small>{atm.faturamento?.elemento_pep_cc_wbs || '-'}</small></td>
+                    <td>{atm.faturamento?.validacao_pep || '-'}</td>
+                    <td className="td-center">{atm.faturamento?.registrado_sap || 'NÃO'}</td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

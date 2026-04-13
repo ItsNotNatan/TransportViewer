@@ -14,7 +14,6 @@ export default function CardEditavel({ atm, onCancelar, onSalvar }) {
     const formData = new FormData(e.target);
     const d = Object.fromEntries(formData.entries());
 
-    // Montando o objeto exatamente como o Backend gosta
     const dadosParaEnviar = {
       status: d.status,
       valor: d.valor_frete,
@@ -27,9 +26,8 @@ export default function CardEditavel({ atm, onCancelar, onSalvar }) {
       medidas: d.medidas,
       veiculo: d.veiculo,
       tipo_frete: d.tipo_frete,
-      nome_transportadora: d.transportadora, // Ajustado para facilitar no backend
+      nome_transportadora: d.transportadora,
       data_entrega: d.data_entrega,
-      // Edição de Endereços inclusa:
       origem: {
         logradouro: d.origem_rua,
         numero: d.origem_num,
@@ -45,10 +43,9 @@ export default function CardEditavel({ atm, onCancelar, onSalvar }) {
     };
 
     try {
-      // 🟢 Usando o API.PUT com Token automático
       await api.put(`/admin/transportes/${atm.id}`, dadosParaEnviar);
       alert('✅ Alterações salvas com sucesso!');
-      onSalvar(); // Fecha o modal e atualiza a lista
+      onSalvar(); 
     } catch (erro) {
       console.error(erro);
       alert('❌ Erro ao salvar: ' + (erro.response?.data?.erro || 'Falha na conexão'));
@@ -61,8 +58,11 @@ export default function CardEditavel({ atm, onCancelar, onSalvar }) {
   const labelStyle = { fontWeight: 'bold', fontSize: '0.75rem', color: '#666', marginBottom: '4px', display: 'block', textTransform: 'uppercase' };
 
   return (
-    <form onSubmit={handleSubmit} style={{ backgroundColor: '#fff' }}>
-      <div style={{ padding: '1.5rem', maxHeight: '75vh', overflowY: 'auto' }}>
+    // 👇 FLEXBOX AQUI: O form ocupa até 75vh da tela no máximo, e organiza os filhos em coluna
+    <form onSubmit={handleSubmit} style={{ backgroundColor: '#fff', display: 'flex', flexDirection: 'column', maxHeight: '75vh' }}>
+      
+      {/* 👇 FLEX: 1 AQUI: Isso faz essa parte esticar o máximo que der, mas criar scroll se passar do limite, protegendo o rodapé! */}
+      <div style={{ padding: '1.5rem', overflowY: 'auto', flex: 1 }}>
         
         {/* SEÇÃO 1: STATUS E FINANCEIRO */}
         <h4 style={{ color: '#2563eb', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>Financeiro & Controle</h4>
@@ -70,11 +70,10 @@ export default function CardEditavel({ atm, onCancelar, onSalvar }) {
           <div style={{ gridColumn: 'span 2' }}>
             <label style={labelStyle}>Status Atual</label>
             <select name="status" defaultValue={atm.status} style={inputStyle}>
-              <option value="Aguardando Aprovação">Aguardando Aprovação</option>
-              <option value="Aprovado">Aprovado</option>
-              <option value="Em Trânsito">Em Trânsito</option>
               <option value="Entregue">Entregue</option>
-              <option value="Cancelado">Cancelado</option>
+              <option value="Em rota">Em rota</option>
+              <option value="Frete morto">Frete morto</option>
+              <option value="Recusado">Recusado</option>
             </select>
           </div>
           <div style={{ gridColumn: 'span 2' }}>
@@ -95,7 +94,7 @@ export default function CardEditavel({ atm, onCancelar, onSalvar }) {
           </div>
         </div>
 
-        {/* SEÇÃO 2: ENDEREÇOS (AGORA EDITÁVEIS!) */}
+        {/* SEÇÃO 2: ENDEREÇOS */}
         <h4 style={{ color: '#2563eb', borderBottom: '1px solid #eee', paddingBottom: '5px' }}>Endereços de Rota</h4>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', marginBottom: '1.5rem' }}>
           {/* Origem */}
@@ -146,13 +145,24 @@ export default function CardEditavel({ atm, onCancelar, onSalvar }) {
         </div>
       </div>
 
-      {/* RODAPÉ FIXO */}
-      <div style={{ padding: '1rem', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-        <button type="button" onClick={onCancelar} style={{ padding: '8px 20px', borderRadius: '6px', border: '1px solid #ccc', cursor: 'pointer' }}>Cancelar</button>
-        <button type="submit" disabled={salvando} style={{ padding: '8px 20px', borderRadius: '6px', border: 'none', background: '#2563eb', color: '#fff', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      {/* 👇 FLEX-SHRINK: 0 AQUI: Impede que o rodapé seja "esmagado" ou empurrado para fora */}
+      <div style={{ padding: '1rem', borderTop: '1px solid #eee', display: 'flex', justifyContent: 'flex-end', gap: '10px', backgroundColor: '#f9fafb', flexShrink: 0 }}>
+        <button 
+          type="button" 
+          onClick={onCancelar} 
+          style={{ padding: '8px 20px', borderRadius: '6px', border: '1px solid #ccc', backgroundColor: '#fff', color: '#374151', fontWeight: 'bold', cursor: 'pointer' }}
+        >
+          Cancelar
+        </button>
+        <button 
+          type="submit" 
+          disabled={salvando} 
+          style={{ padding: '8px 20px', borderRadius: '6px', border: 'none', background: '#2563eb', color: '#fff', fontWeight: 'bold', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+        >
           {salvando ? 'Salvando...' : <><SaveIcon /> Salvar Tudo</>}
         </button>
       </div>
+
     </form>
   );
 }

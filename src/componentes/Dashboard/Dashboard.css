@@ -156,24 +156,45 @@
   text-align: left;
 }
 
-/* Células e Linhas de Dados */
+/* --- Células e Linhas de Dados (ATUALIZADO) --- */
 .tr-data {
   border-bottom: 1px solid #f1f5f9;
+  transition: background-color 0.2s ease; /* Transição suave de cores */
 }
 
 .tr-data td {
   padding: 8px 12px;
 }
 
+/* Cor da linha quando o status é 'Recusado' */
+.linha-recusada {
+  background-color: #fee2e2;
+}
+
+/* Cor ao passar o mouse (hover) por cima da linha */
+.tr-data:hover {
+  background-color: #e0f2fe !important; /* Importante para sobrescrever até o vermelho temporariamente */
+}
+
 /* Deixa o ID fixo na esquerda enquanto o resto desliza */
 .td-id {
   position: sticky;
   left: 0;
-  background-color: white; 
+  background-color: white; /* Cor padrão do fundo da célula fixa */
   z-index: 10;
   box-shadow: 2px 0 5px rgba(0,0,0,0.05);
   font-weight: bold;
   color: #1e293b;
+  transition: background-color 0.2s ease;
+}
+
+/* GARANTE QUE A CÉLULA FIXA (ID) ACOMPANHE AS CORES DE FUNDO DA LINHA */
+.linha-recusada .td-id {
+  background-color: #fee2e2;
+}
+
+.tr-data:hover .td-id {
+  background-color: #e0f2fe !important;
 }
 
 /* Também precisa fixar o cabeçalho correspondente ao ID */
@@ -211,7 +232,7 @@
   color: #dc2626;
 }
 
-/* Coluna de Ações Fixa à Direita */
+/* Coluna de Ações Fixa à Direita (Mantida caso você decida voltar a usá-la um dia) */
 .th-sticky-action {
   position: sticky;
   right: 0;
