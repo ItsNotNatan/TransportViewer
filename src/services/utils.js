@@ -184,3 +184,55 @@ export const temFiltroFatAtivo = (filtros) => {
   
   return false;
 };
+
+/**
+ * 🟢 NOVO: Compara as datas para o Modo Específico e Lote
+ */
+export const matchData = (dataAtm, filtroEspecifico, dataInicio, dataFim) => {
+  // Se não preencheu nenhuma data no filtro, exibe a linha
+  if (!filtroEspecifico && !dataInicio && !dataFim) return true;
+  
+  // Se preencheu, mas o item não tem data no banco, então esconde-o
+  if (!dataAtm) return false;
+
+  const dataBase = dataAtm.split('T')[0]; // Deixa apenas a data pura (ex: "2024-05-20")
+
+  // 1. Modo Específico (Múltiplas datas)
+  if (filtroEspecifico) {
+    const datasEscolhidas = filtroEspecifico.split(',');
+    return datasEscolhidas.includes(dataBase);
+  }
+
+  // 2. Modo Lote (Intervalo)
+  if (dataInicio || dataFim) {
+    // Converte a data do item para um valor numérico para poder comparar quem é maior/menor
+    const valorDataAtual = new Date(dataBase).getTime();
+    
+    // Se não tiver escolhido data início, assume 0. Se não escolher fim, assume infinito
+    const valorDataIni = dataInicio ? new Date(dataInicio).getTime() : 0;
+    const valorDataFim = dataFim ? new Date(dataFim).getTime() : Infinity;
+    
+    return valorDataAtual >= valorDataIni && valorDataAtual <= valorDataFim;
+  }
+
+  return true;
+};
+
+/**
+ * 🟢 ATUALIZADO: Agora o sistema sabe que a data também é um filtro da Operação
+ */
+export const temFiltroOpAtivo = (filtros) => {
+  if (filtros.id !== '' || 
+      filtros.solicitante !== '' || 
+      filtros.pedido !== '' || 
+      filtros.nf !== '' || 
+      filtros.status !== '' || 
+      filtros.transportadora !== '' ||
+      filtros.data_especifica !== '' || 
+      filtros.data_inicio !== '' ||
+      filtros.data_fim !== '') {
+    return true;
+  }
+  
+  return false;
+};

@@ -218,7 +218,7 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
               )}
             </div>
 
-            {/* BLOCO: DATAS */}
+            {/* 👇 BLOCO: DATAS (AGORA COM DROPDOWN INTELIGENTE) 👇 */}
             <div className="filtro-card">
                <div className="filtro-header">
                 <label className="filtro-label">Período da Solicitação</label>
@@ -231,9 +231,27 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
                  <Select isMulti options={opcoesFiltro.datas} value={getMultiValueData(filtros.data_especifica)} onChange={(opts) => handleMultiSelectChange('data_especifica', opts)} placeholder="Selecionar dias..." styles={selectStyles} noOptionsMessage={() => "Nenhuma data encontrada"} />
                ) : (
                  <div className="range-container">
-                    <div className="range-item"><input type="date" name="data_inicio" value={filtros.data_inicio || ''} onChange={onFiltroChange} className="input-padrao" /></div>
+                    <div className="range-item">
+                      <Select 
+                        options={opcoesFiltro.datas} 
+                        value={filtros.data_inicio ? { value: filtros.data_inicio, label: formatarDataParaBR(filtros.data_inicio) } : null} 
+                        onChange={(opt) => onFiltroChange({ target: { name: 'data_inicio', value: opt ? opt.value : '' } })} 
+                        placeholder="De (Data)" 
+                        styles={selectStyles} 
+                        isClearable 
+                      />
+                    </div>
                     <span className="range-divisor">até</span>
-                    <div className="range-item"><input type="date" name="data_fim" value={filtros.data_fim || ''} onChange={onFiltroChange} className="input-padrao" /></div>
+                    <div className="range-item">
+                      <Select 
+                        options={opcoesFiltro.datas} 
+                        value={filtros.data_fim ? { value: filtros.data_fim, label: formatarDataParaBR(filtros.data_fim) } : null} 
+                        onChange={(opt) => onFiltroChange({ target: { name: 'data_fim', value: opt ? opt.value : '' } })} 
+                        placeholder="Até (Data)" 
+                        styles={selectStyles} 
+                        isClearable 
+                      />
+                    </div>
                  </div>
                )}
             </div>

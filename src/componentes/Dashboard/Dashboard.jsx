@@ -10,8 +10,9 @@ import {
   formatarDataCurta, 
   formatarMoeda, 
   matchMultiSelect, 
-  matchFiltro 
-} from '../../services/utils'; 
+  matchFiltro,
+  matchData // 👈 Adiciona esta linha aqui!
+} from '../../services/utils';
 
 // --- Ícones ---
 const TableList = ({ size = 24, className = "" }) => <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><line x1="3" x2="21" y1="9" y2="9"/><line x1="3" x2="21" y1="15" y2="15"/><line x1="9" x2="9" y1="9" y2="21"/></svg>;
@@ -59,7 +60,7 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
     setFiltros(valoresIniciaisFiltro);
   };
 
-  // 1º uso do useMemo: Memorizar a lista filtrada
+// 1º uso do useMemo: Memorizar a lista filtrada
   const atmsFiltrados = useMemo(() => {
     return atms.filter(atm => {
       return matchFiltro(atm.numero_atm || shortId(atm.id), filtros.id) &&
@@ -67,7 +68,9 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
              matchFiltro(atm.nf, filtros.nf) &&
              matchMultiSelect(atm.solicitacao, filtros.solicitante) &&
              matchMultiSelect(atm.status, filtros.status) &&
-             matchMultiSelect(atm.transportadora?.nome, filtros.transportadora);
+             matchMultiSelect(atm.transportadora?.nome, filtros.transportadora) &&
+             // 👇 NOVO: Adiciona esta linha para fazer as datas filtrarem de verdade!
+             matchData(atm.data_solicitacao, filtros.data_especifica, filtros.data_inicio, filtros.data_fim); 
     });
   }, [atms, filtros]);
 
