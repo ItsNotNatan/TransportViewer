@@ -7,7 +7,7 @@ export default function AdminDashboard() {
   const [selectedAtm, setSelectedAtm] = useState(null);
   const [atms, setAtms] = useState([]);
   const [carregando, setCarregando] = useState(true);
-  const [debugInfo, setDebugInfo] = useState('Iniciando busca...'); // 🟢 DEBUG
+  const [debugInfo, setDebugInfo] = useState('Iniciando busca...'); 
 
   useEffect(() => {
     buscarPedidos();
@@ -21,14 +21,23 @@ export default function AdminDashboard() {
 
       const resposta = await api.get('/admin/transportes');
       
-      setDebugInfo(`Sucesso! Recebi ${resposta.data.length} pedidos do banco.`); // 🟢 DEBUG
+      setDebugInfo(`Sucesso! Recebi ${resposta.data.length} pedidos do banco.`); 
       setAtms(resposta.data);
     } catch (erro) {
-      // 🟢 Se der erro, ele vai escrever o erro na tela para você ler
       setDebugInfo("ERRO NA API: " + (erro.response?.data?.erro || erro.message));
     } finally {
       setCarregando(false);
     }
+  };
+
+  // 🟢 NOVO: Função para lidar com a abertura do modal de edição em lote
+  const handleOpenBatchEdit = (idsSelecionados) => {
+    // Para já, mostramos um alert, mas no futuro vais abrir o teu modal aqui!
+    alert(`Pronto para editar ${idsSelecionados.length} itens em lote!\nIDs selecionados: ${idsSelecionados.join(', ')}`);
+    
+    // Exemplo do futuro: 
+    // setBatchEditModalOpen(true);
+    // setIdsParaEditar(idsSelecionados);
   };
 
   return (
@@ -37,6 +46,7 @@ export default function AdminDashboard() {
         atms={atms} 
         carregando={carregando} 
         onOpenAtm={(atm) => setSelectedAtm(atm)} 
+        onOpenBatchEdit={handleOpenBatchEdit} // 🟢 NOVO: Passamos a função para o Dashboard
       />
 
       <CardExpandido 

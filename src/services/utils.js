@@ -1,4 +1,4 @@
-// services/utils.js
+// src/services/utils.js
 
 /**
  * Retorna uma versão encurtada do ID (8 primeiros caracteres)
@@ -103,34 +103,59 @@ export const matchMultiSelect = (valorDoItem, filtro) => {
 
 
 /**
- * Verifica se um valor bate com um filtro de texto simples
+ * 🟢 ATUALIZADO: Verifica se um valor bate com um filtro de texto simples, múltiplo (vírgulas) ou intervalo (hífen)
  */
 export const matchFiltro = (valorDoItem, filtro) => {
-  // Se o usuário não preencheu o filtro, o item é exibido
+  // Se o utilizador não preencheu o filtro, o item é exibido
   if (!filtro) {
     return true;
   }
 
-  // Converte o item e o filtro para texto em maiúsculas para não ter erro de case sensitive
-  let textoItem = '';
-  if (valorDoItem) {
-    textoItem = String(valorDoItem).toUpperCase();
-  }
-
+  // Converte para texto em maiúsculas
+  const textoItem = valorDoItem ? String(valorDoItem).toUpperCase() : '';
   const textoFiltro = String(filtro).toUpperCase().trim();
 
-  // Verifica se o texto do item contém o texto do filtro
-  if (textoItem.includes(textoFiltro)) {
-    return true;
-  } else {
-    return false;
+  // 1. MODO ESPECÍFICO: Múltiplas opções separadas por vírgula (ex: "101, 102")
+  if (textoFiltro.includes(',')) {
+    const termos = textoFiltro.split(',');
+    for (let termo of termos) {
+      if (textoItem.includes(termo.trim())) {
+        return true; // Encontrou pelo menos um dos IDs, mostra a linha!
+      }
+    }
+    return false; // Não tem nenhum dos IDs, esconde a linha
   }
+
+  // 2. MODO LOTE / INTERVALO: Separado por hífen (ex: "100-200")
+  // Só consideramos intervalo se houver um hífen e o item não for igual a esse texto exato
+  if (textoFiltro.includes('-') && !textoItem.includes(textoFiltro)) {
+    const partes = textoFiltro.split('-');
+    if (partes.length === 2) {
+      const de = partes[0].trim();
+      const ate = partes[1].trim();
+
+      // Comparação Numérica (ex: ID 100 até 200)
+      if (!isNaN(textoItem) && !isNaN(de) && (!ate || !isNaN(ate))) {
+        const numItem = Number(textoItem);
+        const numDe = Number(de);
+        const numAte = ate ? Number(ate) : Infinity;
+        return numItem >= numDe && numItem <= numAte;
+      }
+      
+      // Comparação Alfabética (ex: Pedido A até Pedido Z)
+      if (de && ate) return textoItem >= de && textoItem <= ate;
+      if (de) return textoItem >= de;
+      if (ate) return textoItem <= ate;
+    }
+  }
+
+  // 3. PESQUISA NORMAL: Apenas um ID ou texto simples
+  return textoItem.includes(textoFiltro);
 };
 
 
 /**
  * Verifica se há algum filtro da aba Operação ativo
- * Substituímos o uso de '!!' por comparações diretas para ficar mais legível
  */
 export const temFiltroOpAtivo = (filtros) => {
   if (filtros.id !== '' || 

@@ -11,6 +11,21 @@ const X = ({ size = 24 }) => (
   <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
 );
 
+const formatarDataParaBR = (d) => {
+  if (!d) return '';
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) return d;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    const [ano, mes, dia] = d.split('-');
+    return `${dia}/${mes}/${ano}`;
+  }
+  if (/^\d{2}-\d{2}-\d{4}$/.test(d)) return d.replace(/-/g, '/');
+  if (/^\d{4}\/\d{2}\/\d{2}$/.test(d)) {
+    const [ano, mes, dia] = d.split('/');
+    return `${dia}/${mes}/${ano}`;
+  }
+  return d; 
+};
+
 export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aberto, onClose }) {
   const [modoId, setModoId] = useState('especifico');
   const [modoPedido, setModoPedido] = useState('especifico');
@@ -43,8 +58,7 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
     const formatarOpcoes = (set) => Array.from(set).filter(Boolean).sort().map(item => ({ value: item, label: item }));
 
     const formatarOpcoesData = Array.from(datas).sort().map(d => {
-      const [ano, mes, dia] = d.split('-');
-      return { value: d, label: `${dia}/${mes}/${ano}` };
+      return { value: d, label: formatarDataParaBR(d) };
     });
 
     return {
@@ -93,8 +107,8 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
   const getMultiValueData = (str) => {
     if (!str) return [];
     return str.split(',').filter(Boolean).map(v => {
-      const [ano, mes, dia] = v.trim().split('-');
-      return { value: v.trim(), label: `${dia}/${mes}/${ano}` };
+      const valorLimpo = v.trim();
+      return { value: valorLimpo, label: formatarDataParaBR(valorLimpo) };
     });
   };
 
@@ -117,6 +131,12 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
     multiValue: (base) => ({ ...base, backgroundColor: '#dbeafe', borderRadius: '0.25rem' }),
     multiValueLabel: (base) => ({ ...base, color: '#1e40af', fontWeight: 'bold' }),
     multiValueRemove: (base) => ({ ...base, color: '#1e40af', ':hover': { backgroundColor: '#bfdbfe', color: '#1e3a8a' } }),
+    option: (base, state) => ({
+      ...base,
+      color: '#111827', 
+      backgroundColor: state.isFocused ? '#eff6ff' : 'white', 
+      cursor: 'pointer', 
+    }),
   };
 
   if (!aberto) return null;
@@ -248,7 +268,6 @@ export default function FiltroOP({ atms, filtros, onFiltroChange, onLimpar, aber
           </div>
         </div>
 
-{/* --- RODAPÉ COM OS BOTÕES SEPARADOS E MESMA ALTURA --- */}
         <div className="modal-footer">
           <button type="button" onClick={onLimpar} className="btn-limpar">
             <XCircle size={18} /> Limpar Filtros
