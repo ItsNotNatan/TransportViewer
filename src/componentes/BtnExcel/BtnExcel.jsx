@@ -31,7 +31,43 @@ export default function BtnExcel({ atmsFiltrados }) {
       
       worksheet.getCell('D2').value = 'Gestão de Fretes';
       worksheet.getCell('D2').font = { bold: true, size: 16 };
-      worksheet.getCell('A2').value = logoComau;
+      
+      // ============================================================
+      // INSERÇÃO DA IMAGEM NO EXCEL
+      // ============================================================
+// ============================================================
+      // INSERÇÃO DA IMAGEM NO EXCEL (COM PROPORÇÃO AUTOMÁTICA)
+      // ============================================================
+      
+      // 1. Transforma a imagem importada em dados brutos (Buffer)
+      const response = await fetch(logoComau);
+      const bufferImage = await response.arrayBuffer();
+
+      // 2. Lógica para descobrir o tamanho real da imagem e não distorcer
+      const img = new Image();
+      img.src = logoComau;
+      await new Promise((resolve) => {
+        img.onload = resolve;
+      });
+      
+      // Defina aqui qual a ALTURA que você quer que a logo tenha no Excel
+      const alturaDesejada = 80; 
+      // A mágica: calcula a largura exata para não espremer!
+      const larguraProporcional = (img.width / img.height) * alturaDesejada;
+
+      // 3. Registra a imagem dentro do arquivo do ExcelJS
+      const logoId = workbook.addImage({
+        buffer: bufferImage,
+        extension: 'png', 
+      });
+
+      // 4. Cola a imagem na planilha na posição desejada
+      worksheet.addImage(logoId, {
+        tl: { col: 0, row: 0 }, // col: 0 = Coluna A | row: 1 = Linha 2
+        ext: { width: larguraProporcional, height: alturaDesejada } 
+      });
+      // ============================================================
+      // ============================================================
 
       // Configuração das Colunas
       worksheet.columns = [
@@ -87,7 +123,7 @@ export default function BtnExcel({ atmsFiltrados }) {
       linhaCabecalho.values = titulos;
 
       linhaCabecalho.eachCell((cell, colNumber) => {
-        // Verifica se é a coluna do separador (agora é a coluna 24)
+        // Verifica se é a coluna do separador
         if (worksheet.getColumn(colNumber).key === 'separador_preto') {
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF000000' } };
         } else {
