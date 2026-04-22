@@ -1,7 +1,9 @@
+// src/componentes/Dashboard/Dashboard.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import FiltroOP from '../FiltroOP/FiltroOP'; 
 import FiltroFat from '../FiltroFat/FiltroFat';
 import BtnExcel from '../BtnExcel/BtnExcel';
+import EditarLote from '../EditarLote/EditarLote'; // 👈 1. Importação do novo Modal
 import './Dashboard.css';
 
 // Importando as nossas funções auxiliares do arquivo utils.js
@@ -11,7 +13,7 @@ import {
   formatarMoeda, 
   matchMultiSelect, 
   matchFiltro,
-  matchData // 👈 Adiciona esta linha aqui!
+  matchData
 } from '../../services/utils';
 
 // --- Ícones ---
@@ -19,11 +21,9 @@ const TableList = ({ size = 24, className = "" }) => <svg aria-hidden="true" xml
 const ChevronLeft = ({ size = 18 }) => <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>;
 const ChevronRight = ({ size = 18 }) => <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>;
 const FilterIcon = ({ size = 16 }) => <svg aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>;
-// 🟢 NOVO ÍCONE: Para o botão de edição em lote
 const EditBatchIcon = ({ size = 16 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 
-// 🟢 NOVO: Recebemos onOpenBatchEdit por props
-export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit }) {
+export default function Dashboard({ atms, carregando, onOpenAtm }) { // onOpenBatchEdit removido das props, não precisaremos mais
   const valoresIniciaisFiltro = { 
     id: '', solicitante: '', pedido: '', nf: '', data_inicio: '', data_fim: '', data_especifica: '', status: '', transportadora: '',
     fatura: '', elemento_pep: '', registrado_sap: '', tipo_documento: '', validacao_pep: '',
@@ -35,19 +35,16 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
   const [filtros, setFiltros] = useState(valoresIniciaisFiltro);
   const [abertoFiltroOp, setAbertoFiltroOp] = useState(false);
   const [abertoFiltroFat, setAbertoFiltroFat] = useState(false);
+  const [abertoEdicaoLote, setAbertoEdicaoLote] = useState(false); // 👈 2. Novo estado do Modal
   const [paginaAtual, setPaginaAtual] = useState(1);
-  
-  // 🟢 NOVO: Estado para guardar os IDs das linhas selecionadas
   const [selecionados, setSelecionados] = useState([]);
   
   const itensPorPagina = 20;
-
   const tableContentRef = useRef(null);
 
-  // Volta para a página 1 e limpa as seleções sempre que os filtros mudarem
   useEffect(() => { 
     setPaginaAtual(1); 
-    setSelecionados([]); // 🟢 NOVO: Limpamos a seleção ao filtrar para evitar bugs
+    setSelecionados([]); 
   }, [filtros]);
 
   const handleFiltroChange = (e) => {
@@ -55,12 +52,22 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
     setFiltros(prev => ({ ...prev, [name]: value }));
   };
 
-  // Função para limpar todos os filtros
   const limparFiltros = () => {
     setFiltros(valoresIniciaisFiltro);
   };
 
-// 1º uso do useMemo: Memorizar a lista filtrada
+  // 👈 3. Função que recebe os dados do Modal
+  const handleSalvarLote = (ids, dadosAlterados) => {
+    console.log("IDs que serão alterados:", ids);
+    console.log("Novos dados:", dadosAlterados);
+    
+    // Aqui no futuro você colocará a lógica da sua API (fetch/axios) para atualizar no banco
+    alert(`Sucesso! Abra o console do navegador (F12) para ver os ${ids.length} IDs e os dados que serão enviados ao banco.`);
+    
+    setAbertoEdicaoLote(false); // Fecha o modal
+    setSelecionados([]); // Limpa as checkboxes
+  };
+
   const atmsFiltrados = useMemo(() => {
     return atms.filter(atm => {
       return matchFiltro(atm.numero_atm || shortId(atm.id), filtros.id) &&
@@ -69,19 +76,16 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
              matchMultiSelect(atm.solicitacao, filtros.solicitante) &&
              matchMultiSelect(atm.status, filtros.status) &&
              matchMultiSelect(atm.transportadora?.nome, filtros.transportadora) &&
-             // 👇 NOVO: Adiciona esta linha para fazer as datas filtrarem de verdade!
              matchData(atm.data_solicitacao, filtros.data_especifica, filtros.data_inicio, filtros.data_fim); 
     });
   }, [atms, filtros]);
 
   const totalPaginas = Math.ceil(atmsFiltrados.length / itensPorPagina);
 
-  // 2º uso do useMemo: Memorizar a fatia da página atual
   const atmsExibidos = useMemo(() => {
     return atmsFiltrados.slice((paginaAtual - 1) * itensPorPagina, paginaAtual * itensPorPagina);
   }, [atmsFiltrados, paginaAtual]);
 
-  // Função de cor do badge adaptada aos novos status
   const getStatusClass = (status) => {
     const s = status?.toLowerCase();
     if (s === 'entregue') return 'badge-success';
@@ -90,25 +94,21 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
     return 'badge-warning';
   };
 
-  // 🟢 NOVO: Função para selecionar/deselecionar uma linha específica
   const handleSelectRow = (id) => {
     setSelecionados(prev => 
       prev.includes(id) 
-        ? prev.filter(itemId => itemId !== id) // Remove se já existe
-        : [...prev, id] // Adiciona se não existe
+        ? prev.filter(itemId => itemId !== id) 
+        : [...prev, id] 
     );
   };
 
-  // 🟢 NOVO: Função para selecionar todas as linhas visíveis na página atual
   const handleSelectAll = () => {
     const todosIdsPagina = atmsExibidos.map(atm => atm.id);
     const todosSelecionados = todosIdsPagina.length > 0 && todosIdsPagina.every(id => selecionados.includes(id));
 
     if (todosSelecionados) {
-      // Se todos da página estão selecionados, desmarca-os
       setSelecionados(prev => prev.filter(id => !todosIdsPagina.includes(id)));
     } else {
-      // Se não, marca todos que ainda não estão marcados
       setSelecionados(prev => {
         const novosIds = todosIdsPagina.filter(id => !prev.includes(id));
         return [...prev, ...novosIds];
@@ -122,7 +122,14 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
       <FiltroOP atms={atms} filtros={filtros} onFiltroChange={handleFiltroChange} onLimpar={limparFiltros} aberto={abertoFiltroOp} onClose={() => setAbertoFiltroOp(false)} />
       <FiltroFat atms={atms} filtros={filtros} onFiltroChange={handleFiltroChange} onLimpar={limparFiltros} aberto={abertoFiltroFat} onClose={() => setAbertoFiltroFat(false)} />
       
-      {/* 🟢 NOVO: Barra de Ações em Lote - Aparece apenas se houver selecionados */}
+      {/* 👈 4A. Adicionando o Componente do Modal na tela */}
+      <EditarLote 
+        aberto={abertoEdicaoLote} 
+        onClose={() => setAbertoEdicaoLote(false)} 
+        idsSelecionados={selecionados} 
+        onSalvar={handleSalvarLote} 
+      />
+
       {selecionados.length > 0 && (
         <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '12px 20px', borderRadius: '8px', marginBottom: '15px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', animation: 'slideDown 0.2s ease-out' }}>
           <span style={{ color: '#1e40af', fontSize: '0.95rem' }}>
@@ -136,7 +143,7 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
               Cancelar
             </button>
             <button 
-              onClick={() => onOpenBatchEdit && onOpenBatchEdit(selecionados)}
+              onClick={() => setAbertoEdicaoLote(true)} /* 👈 4B. Atualizando o click do botão */
               style={{ display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#2563eb', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
             >
               <EditBatchIcon size={16} /> Editar em Lote
@@ -150,7 +157,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
           <table className="dashboard-table" ref={tableContentRef}>
             <thead className="sticky-thead">
               <tr>
-                {/* 🟢 NOVO: Aumentamos o colSpan de 11 para 12 para acomodar a checkbox */}
                 <th colSpan="12" className="th-group-op">
                   <div className="th-group-content">
                     <span className="th-group-title">DADOS DA OPERAÇÃO</span>
@@ -160,7 +166,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
                   </div>
                 </th>
 
-                {/* GRUPO FATURAMENTO */}
                 <th colSpan="9" className="th-group-fat">
                   <div className="th-group-content">
                     <span className="th-group-title">FATURAMENTO / SAP</span>
@@ -172,7 +177,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
               </tr>
 
               <tr className="tr-subheader">
-                {/* 🟢 NOVO: Cabeçalho com a Checkbox de Selecionar Tudo */}
                 <th className="sticky-column-left" style={{ width: '40px', textAlign: 'center', zIndex: 30 }}>
                   <input 
                     type="checkbox" 
@@ -211,26 +215,21 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
                 <tr><td colSpan="21" className="td-empty-state">Nenhum resultado encontrado.</td></tr>
               ) : atmsExibidos.map((atm) => {
                 
-                // Verifica se está recusado para aplicar a classe CSS correta
                 const isRecusado = atm.status?.toLowerCase() === 'recusado';
-                
-                // 🟢 NOVO: Verifica se a linha atual está na lista de selecionados
                 const isSelected = selecionados.includes(atm.id);
 
                 return (
                   <tr 
                     key={atm.id} 
-                    // 🟢 NOVO: Adiciona a classe 'linha-selecionada' e mantém a 'linha-recusada'
                     className={`tr-data ${isRecusado ? 'linha-recusada' : ''} ${isSelected ? 'linha-selecionada' : ''}`} 
                     onDoubleClick={() => onOpenAtm(atm)} 
                     style={{ cursor: 'pointer', backgroundColor: isSelected ? '#f5f8ff' : '' }}
                     title="Duplo clique para abrir detalhes"
                   >
-                    {/* 🟢 NOVO: Célula com a Checkbox individual */}
                     <td 
                       className="td-id" 
                       style={{ textAlign: 'center', backgroundColor: isSelected ? '#f5f8ff' : '' }} 
-                      onClick={(e) => e.stopPropagation()} /* Impede o duplo clique de disparar ao clicar na caixa */
+                      onClick={(e) => e.stopPropagation()}
                     >
                        <input 
                          type="checkbox" 
@@ -239,7 +238,6 @@ export default function Dashboard({ atms, carregando, onOpenAtm, onOpenBatchEdit
                          style={{ cursor: 'pointer', width: '16px', height: '16px' }}
                        />
                     </td>
-                    {/* Mantemos o td-id aqui também para o ID ficar fixo, mas ajustamos o background condicional */}
                     <td className="td-id" style={{ backgroundColor: isSelected ? '#f5f8ff' : '' }}>#{atm.numero_atm || shortId(atm.id)}</td>
                     <td>{atm.wbs || '-'}</td>
                     <td>{atm.solicitacao || '-'}</td>
