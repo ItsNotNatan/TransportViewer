@@ -24,7 +24,7 @@ const FilterIcon = ({ size = 16 }) => <svg aria-hidden="true" xmlns="http://www.
 const EditBatchIcon = ({ size = 16 }) => <svg xmlns="http://www.w3.org/2000/svg" width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>;
 
 export default function Dashboard({ atms, carregando, onOpenAtm }) { // onOpenBatchEdit removido das props, não precisaremos mais
-  const valoresIniciaisFiltro = { 
+  const valoresIniciaisFiltro = {
     id: '', solicitante: '', pedido: '', nf: '', data_inicio: '', data_fim: '', data_especifica: '', status: '', transportadora: '',
     fatura: '', elemento_pep: '', registrado_sap: '', tipo_documento: '', validacao_pep: '',
     data_map_inicio: '', data_map_fim: '', data_map_especifica: '',
@@ -199,7 +199,7 @@ export default function Dashboard({ atms, carregando, onOpenAtm }) { // onOpenBa
                 <th>Tipo Doc.</th>
                 <th>Data Map.</th>
                 <th>Fatura</th>
-                <th>Valor (R$)</th>
+                <th>Vlr. Relizado</th>
                 <th>Data Emissão</th>
                 <th>Vencimento</th>
                 <th>Elem. PEP</th>
